@@ -1,0 +1,621 @@
+<!doctype html><html><head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<title>Wasserstrahl &amp; geladener Stab</title>
+<link rel="stylesheet" href="fonts-experimente/fonts.css">
+<style>
+/* Layout: eine Bühne (Canvas) mit Werkzeugleiste darüber, Messwerte und Erklärung darunter */
+:root {
+  --bg: #edf1f4;
+  --panel: #ffffff;
+  --ink: #18222e;
+  --muted: #566474;
+  --line: #d3dbe2;
+  --accent: #1d6b74;
+  --accent-ink: #ffffff;
+  --plus: #d0412f;
+  --minus: #2a63c9;
+  --sign: #ffffff;
+  --stage: #f7f9fa;
+  --stage-grid: #e4eaee;
+  --water: #8cc3e0;
+  --water-hi: #e6f4fb;
+  --water-deep: #4d8db5;
+  --metal: #b9c2ca;
+  --metal-dark: #7d8994;
+  --glass: #c7d3dc;
+  --paper-line: #a9b0a6;
+  --rod: #4a5560;
+  --acrylic: #bcdbe4;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12181f; --panel: #1a222b; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3742;
+    --accent: #4fb3bd; --accent-ink: #0d1a1d; --plus: #ff6a55; --minus: #5c93ff; --sign: #ffffff;
+    --stage: #161d25; --stage-grid: #1f2831; --water: #3f86ad; --water-hi: #a9d8ef; --water-deep: #24587a;
+    --metal: #7f8a94; --metal-dark: #525d67; --glass: #4a5965; --paper-line: #8d948a;
+    --rod: #3a444e; --acrylic: #7fa7b4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12181f; --panel: #1a222b; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3742;
+  --accent: #4fb3bd; --accent-ink: #0d1a1d; --plus: #ff6a55; --minus: #5c93ff; --sign: #ffffff;
+  --stage: #161d25; --stage-grid: #1f2831; --water: #3f86ad; --water-hi: #a9d8ef; --water-deep: #24587a;
+  --metal: #7f8a94; --metal-dark: #525d67; --glass: #4a5965; --paper-line: #8d948a;
+  --rod: #3a444e; --acrylic: #7fa7b4;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 40px; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 0; color: var(--muted); max-width: 65ch; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+.seg button { font: inherit; font-weight: 700; font-size: 0.95rem; border: 0; background: transparent; color: var(--muted); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.btn { font: inherit; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 9px 16px; border-radius: 999px; cursor: pointer; }
+.btn:hover, .seg button:hover:not([aria-pressed="true"]) { color: var(--ink); background: var(--stage-grid); }
+button:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 620; border-radius: 8px; touch-action: none; cursor: grab; }
+canvas.dragging { cursor: grabbing; }
+
+.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 2fr); gap: 12px; }
+.meter { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; gap: 4px; min-width: 0; align-content: start; }
+.meter .k { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+.meter .v { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.1; }
+.meter .d { font-size: 0.88rem; color: var(--muted); }
+.bar { height: 10px; border-radius: 999px; background: var(--stage-grid); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 999px; }
+.status { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; min-width: 0; }
+.status p { margin: 0; }
+
+.notes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; padding-top: 4px; }
+.notes h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; margin: 0 0 8px; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.legend li { display: flex; gap: 10px; align-items: center; }
+.chip { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: var(--sign); font-weight: 700; font-size: 16px; line-height: 1; }
+.chip.p { background: var(--plus); }
+.chip.m { background: var(--minus); }
+.dip { flex: none; display: inline-flex; align-items: center; gap: 2px; }
+.dip .chip { width: 18px; height: 18px; font-size: 13px; }
+.expert { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+.expert summary { cursor: pointer; font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; padding: 10px 0; }
+.expert summary .tag { display: inline-block; font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 2px 10px; margin-right: 8px; vertical-align: 2px; }
+.expert p { margin: 0 0 12px; max-width: 70ch; }
+.notes ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 65ch; }
+
+@media (max-width: 720px) {
+  .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status { grid-column: 1 / -1; }
+  .notes { grid-template-columns: 1fr; }
+  .meter .v { font-size: 1.6rem; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Experiment 3: Der gebogene Wasserstrahl</h1>
+    <p class="sub">Aus dem Hahn fließt ein dünner Wasserstrahl. Greife den geladenen Stab und nähere ihn dem Strahl, ohne ihn zu berühren. Der Strahl biegt sich zum Stab hin. Beobachte die Ionen im Wasser.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Stab auswählen">
+      <button type="button" id="rod-pvc" aria-pressed="true">PVC-Stab (negativ)</button>
+      <button type="button" id="rod-acr" aria-pressed="false">Acrylglasstab (positiv)</button>
+      <button type="button" id="rod-neu" aria-pressed="false">Ungeladener Stab</button>
+    </div>
+    <button type="button" class="btn" id="reset">Zurücksetzen</button>
+  </div>
+
+  <div class="stage">
+    <canvas id="c" width="1000" height="620" tabindex="0" aria-label="Simulation: geladenen Stab neben dem Wasserstrahl bewegen und die Ionen im Strahl beobachten. Mit den Pfeiltasten lässt sich der Stab ebenfalls bewegen."></canvas>
+  </div>
+
+  <div class="readout" aria-live="polite">
+    <div class="meter">
+      <span class="k">Ladung im Strahl</span>
+      <span class="v" id="vq">neutral</span>
+      <span class="d" id="dq">gleich viele + und − Ionen</span>
+    </div>
+    <div class="meter">
+      <span class="k">Ablenkung des Strahls</span>
+      <span class="v" id="vd">keine</span>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+    </div>
+    <div class="status"><p id="status">Der Stab ist weit weg. Im Strahl fließen gleich viele positive und negative Ionen, der Strahl fällt gerade nach unten.</p></div>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>Legende</h2>
+      <ul class="legend">
+        <li><span class="chip p">+</span><span>positives Ion im Wasser (z. B. Calcium, Natrium)</span></li>
+        <li><span class="chip m">−</span><span>negatives Ion im Wasser (z. B. Chlorid, Hydrogencarbonat)</span></li>
+        <li><span>Die Ladungen an den Stäben sind genauso dargestellt. Die vielen neutralen Wassermoleküle sind nicht eingezeichnet.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Was passiert?</h2>
+      <ol>
+        <li>Leitungswasser enthält gelöste <strong>Ionen</strong>: positiv und negativ geladene Teilchen, die sich im Wasser bewegen können. Deshalb leitet Leitungswasser, ähnlich wie die Getränkedose aus Metall.</li>
+        <li>Nähert man den negativen PVC-Stab, werden die negativen Ionen abgestoßen. Sie weichen nach oben in den Hahn und die Wasserleitung aus. Im Strahl nahe am Stab bleiben mehr positive Ionen. Das ist <strong>Influenz</strong>.</li>
+        <li>Das Wasser fließt nach unten weiter und nimmt diese Ladung mit. Der Strahl ist jetzt <strong>wirklich geladen</strong>, entgegengesetzt zum Stab. Darum wird er zum Stab gezogen.</li>
+        <li>Beim positiven Acrylglasstab ist es umgekehrt: Positive Ionen weichen in die Leitung aus, der Strahl wird negativ und ebenfalls angezogen.</li>
+        <li>Wasserstrahl und Leitung zusammen bleiben neutral. Die fehlende Ladung steckt im Wasser in der Leitung.</li>
+      </ol>
+    </div>
+  </section>
+
+  <details class="expert">
+    <summary><span class="tag">Expertenwissen</span>Und die Wassermoleküle als Dipole?</summary>
+    <p>Oft liest man: Wassermoleküle sind Dipole, drehen sich zum Stab hin und werden deshalb angezogen. Wassermoleküle sind zwar Dipole, aber diese Erklärung reicht nicht aus.</p>
+    <p>Ein Dipol wird im elektrischen Feld vor allem gedreht. Die Kraft, die ihn zum Stab zieht, ist sehr klein. Versuche zeigen: Schirmt man die Stelle ab, an der das Wasser den Hahn verlässt, wird der Strahl kaum noch abgelenkt, obwohl die Dipole weiter im Feld sind.</p>
+    <p>Entscheidend sind also die Ionen und die Ladung, die das Wasser durch Influenz mitnimmt.</p>
+  </details>
+</div>
+
+<script>
+(function () {
+  const W = 1000, H = 620;
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const NOZ = { x: 470, y: 92 };
+  const BEAKER = { x: 300, y: 500, w: 340, h: 110 };
+  const SURFACE_Y = BEAKER.y + 40;
+  const V0 = 110, G = 900, A = 150;     // px/s, px/s², Stärke der Anziehung
+  const A_MAX = 420;                    // Obergrenze der seitlichen Beschleunigung
+  const JET_W = 26;
+  const TIP_START = { x: 680, y: 330 };
+  const ROD_DIR = { x: Math.cos(-0.5), y: Math.sin(-0.5) };
+  const ROD_LEN = 300, ROD_W = 38;
+  const MIN_GAP = 34;                   // kleinster Abstand Strahlrand–Staboberfläche
+  const SOFT = 12;                      // in dieser Zone vor dem Mindestabstand lässt die Kraft nach
+  const APPROACH = 70;                  // so nah darf der Stab an den ungestörten Strahl heran
+  let E0 = 1;
+
+  const tip = { x: TIP_START.x, y: TIP_START.y };
+  let rodCharges = [], path = [], drops = [], spawn = 0;
+  let rodSign = -1, deflect = 0, maxS = 0;
+  let drag = null, everDragged = false;
+  let f = 0;   // Anteil der überschüssigen Ladung im Strahl (0 = neutral, 1 = stark geladen)
+  // neue Ionen am Hahn: beim geladenen Stab überwiegt die zum Stab entgegengesetzte Ladung
+  let alt = 1;
+  function newSign() {
+    if (!rodSign || f < 0.05) { alt = -alt; return alt; }
+    const pOpp = 0.5 + 0.45 * f;
+    return Math.random() < pOpp ? -rodSign : rodSign;
+  }
+
+  function rodPoint(a, side, off) {
+    const nx = -ROD_DIR.y, ny = ROD_DIR.x;
+    return { x: tip.x + ROD_DIR.x * a + nx * side * off, y: tip.y + ROD_DIR.y * a + ny * side * off };
+  }
+  function nearestOnRod(px, py, tx, ty) {
+    const dx = ROD_DIR.x * ROD_LEN, dy = ROD_DIR.y * ROD_LEN;
+    let t = ((px - tx) * dx + (py - ty) * dy) / (dx * dx + dy * dy);
+    t = Math.max(0, Math.min(1, t));
+    return { x: tx + t * dx, y: ty + t * dy };
+  }
+  let calib = false;
+  // Wirkung erst ab einer gewissen Nähe: weit weg fast keine Ladungsverschiebung
+  function eff(s, cap) { return Math.min(cap || 1.5, s <= 0.3 ? 0 : (s - 0.3) / 0.7); }
+  function field(x, y) {
+    if (!rodSign && !calib) return { x: 0, y: 0 };
+    let ex = 0, ey = 0;
+    for (const r of rodCharges) {
+      const p = rodPoint(r.a, r.side, 8);
+      const dx = p.x - x, dy = p.y - y;
+      const d2 = Math.max(dx * dx + dy * dy, 400);
+      const d = Math.sqrt(d2);
+      ex += dx / (d2 * d); ey += dy / (d2 * d);
+    }
+    return { x: ex, y: ey };
+  }
+
+  // Bahn des Strahls: Wurf nach unten mit zusätzlicher Anziehung zum Stab
+  // Abstand vom Strahlrand zur Staboberfläche
+  function gapAt(x, y, tx, ty) {
+    const q = nearestOnRod(x, y, tx, ty);
+    const d = Math.hypot(x - q.x, y - q.y);
+    return { gap: d - ROD_W / 2 - JET_W / 2, nx: (q.x - x) / (d || 1), ny: (q.y - y) / (d || 1) };
+  }
+
+  function computePath(tx, ty) {
+    if (tx === undefined) { tx = tip.x; ty = tip.y; }
+    const sx = tip.x, sy = tip.y;
+    tip.x = tx; tip.y = ty;
+    const pts = [];
+    let x = NOZ.x, y = NOZ.y, vx = 0, vy = V0, t = 0, minGap = 1e9;
+    const h = 1 / 240;
+    maxS = 0;
+    pts.push({ x, y, t });
+    for (let i = 0; i < 2000 && y < SURFACE_Y; i++) {
+      const E = field(x, y);
+      const m = Math.hypot(E.x, E.y);
+      const s = eff(m / E0, 3);
+      maxS = Math.max(maxS, s);
+      const g = gapAt(x, y, tx, ty);
+      // kurz vor dem Mindestabstand lässt die Anziehung weich nach
+      const soft = Math.max(0, Math.min(1, (g.gap - MIN_GAP) / SOFT));
+      // nur die waagerechte Anziehung zählt; senkrecht überwiegt die Schwerkraft bei Weitem
+      if (m > 0) {
+        const a = Math.min(A_MAX, A * s * Math.abs(E.x) / m) * soft;
+        vx += Math.sign(E.x) * a * h;
+      }
+      vy += G * h;
+      // in der Zone vor dem Mindestabstand wird die seitliche Bewegung zum Stab hin gebremst
+      if (g.gap < MIN_GAP + SOFT && vx * g.nx > 0) vx *= 1 - (1 - soft) * 0.2;
+      vx *= 0.998;
+      x += vx * h; y += vy * h; t += h;
+      // harte Grenze: der Strahl kommt dem Stab nie näher als MIN_GAP (waagerecht zurückschieben)
+      for (let k = 0; k < 6; k++) {
+        const g2 = gapAt(x, y, tx, ty);
+        if (g2.gap >= MIN_GAP) break;
+        const dir = g2.nx > 0 ? -1 : 1;
+        x += dir * (MIN_GAP - g2.gap + 0.5);
+        if (vx * dir < 0) vx = 0;
+      }
+      minGap = Math.min(minGap, gapAt(x, y, tx, ty).gap);
+      if (i % 2 === 1) pts.push({ x, y, t });
+    }
+    pts.push({ x, y, t });
+    pts.minGap = minGap;
+    tip.x = sx; tip.y = sy;
+    return pts;
+  }
+  function pointAt(t) {
+    // Position auf der Bahn zur Flugzeit t
+    let lo = 0, hi = path.length - 1;
+    if (t >= path[hi].t) return { x: path[hi].x, y: path[hi].y, i: hi };
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (path[m].t <= t) lo = m; else hi = m; }
+    const a = path[lo], b = path[hi], k = (t - a.t) / (b.t - a.t || 1);
+    return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, i: lo };
+  }
+
+  function init() {
+    tip.x = TIP_START.x; tip.y = TIP_START.y;
+    rodCharges = [];
+    for (let a = 16; a <= ROD_LEN - 14; a += 26) rodCharges.push({ a, side: -1 });
+    for (let a = 29; a <= ROD_LEN - 14; a += 26) rodCharges.push({ a, side: 1 });
+    const sx = tip.x, sy = tip.y;
+    tip.x = 500; tip.y = 250;
+    calib = true; const Er = field(330, 250); calib = false;
+    E0 = Math.hypot(Er.x, Er.y);
+    tip.x = sx; tip.y = sy;
+    path = computePath();
+    drops = [];
+    const T = path[path.length - 1].t;
+    for (let t = 0; t < T; t += 0.075) drops.push({ t, sign: drops.length % 2 ? 1 : -1 });
+  }
+
+  // Eine Stabposition ist erlaubt, wenn weder der gerade noch der abgelenkte Strahl den Stab berühren würde
+  function rodAllowed(tx, ty) {
+    for (let y = NOZ.y; y <= SURFACE_Y; y += 6) {
+      if (gapAt(NOZ.x, y, tx, ty).gap < APPROACH) return false;
+    }
+    // der Stab darf nicht über den Hahn oder das Becken geschoben werden
+    if (gapAt(NOZ.x, NOZ.y - 30, tx, ty).gap < 10) return false;
+    const p = computePath(tx, ty);
+    return p.minGap >= MIN_GAP - 1;
+  }
+  function moveTip(nx, ny) {
+    nx = Math.max(24, Math.min(W - 24 - ROD_DIR.x * ROD_LEN, nx));
+    ny = Math.max(24 - ROD_DIR.y * ROD_LEN, Math.min(BEAKER.y - ROD_W / 2 - 8, ny));
+    const ok = (x, y) => rodAllowed(x, y);
+    if (ok(nx, ny)) { tip.x = nx; tip.y = ny; return; }
+    if (ok(nx, tip.y)) { tip.x = nx; return; }
+    if (ok(tip.x, ny)) { tip.y = ny; }
+  }
+
+  // ---- Eingabe ----
+  function toLocal(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  }
+  function onRod(x, y) {
+    const q = nearestOnRod(x, y, tip.x, tip.y);
+    return Math.hypot(x - q.x, y - q.y) < ROD_W / 2 + 14;
+  }
+  canvas.addEventListener('pointerdown', e => {
+    const p = toLocal(e);
+    if (onRod(p.x, p.y)) {
+      drag = { dx: tip.x - p.x, dy: tip.y - p.y };
+      everDragged = true;
+      canvas.setPointerCapture(e.pointerId);
+      canvas.classList.add('dragging');
+      e.preventDefault();
+    }
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const p = toLocal(e);
+    moveTip(p.x + drag.dx, p.y + drag.dy);
+  });
+  function endDrag() { drag = null; canvas.classList.remove('dragging'); }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('keydown', e => {
+    const step = 12;
+    const m = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (m) { e.preventDefault(); everDragged = true; moveTip(tip.x + m[0], tip.y + m[1]); }
+  });
+
+  let lastMsg = '';
+  const bPvc = document.getElementById('rod-pvc'), bAcr = document.getElementById('rod-acr'), bNeu = document.getElementById('rod-neu');
+  function setRod(sign) {
+    rodSign = sign;
+    bPvc.setAttribute('aria-pressed', sign < 0);
+    bAcr.setAttribute('aria-pressed', sign > 0);
+    bNeu.setAttribute('aria-pressed', sign === 0);
+    lastMsg = '';
+  }
+  bPvc.addEventListener('click', () => setRod(-1));
+  bAcr.addEventListener('click', () => setRod(1));
+  bNeu.addEventListener('click', () => setRod(0));
+  document.getElementById('reset').addEventListener('click', init);
+
+  // ---- Anzeige ----
+  const vq = document.getElementById('vq'), dq = document.getElementById('dq');
+  let lastQ = '';
+  const vd = document.getElementById('vd'), bar = document.getElementById('bar'), st = document.getElementById('status');
+  let lastWord = '';
+  function updateReadout() {
+    const word = deflect < 6 ? 'keine' : deflect < 25 ? 'schwach' : deflect < 60 ? 'deutlich' : 'stark';
+    if (word !== lastWord) { lastWord = word; vd.textContent = word; }
+    bar.style.width = Math.min(100, deflect / 1.0) + '%';
+    const neg = rodSign < 0;
+    let net = 0;
+    for (const d of drops) net += d.sign;
+    const share = net / drops.length;
+    const q = (!rodSign || f < 0.05 || Math.abs(share) < 0.12) ? 'neutral' : share > 0 ? 'positiv' : 'negativ';
+    if (q !== lastQ) {
+      lastQ = q; vq.textContent = q;
+      dq.textContent = q === 'neutral' ? 'gleich viele + und − Ionen' : 'mehr ' + (q === 'positiv' ? '+' : '−') + ' als ' + (q === 'positiv' ? '−' : '+') + ' Ionen';
+    }
+    let msg;
+    if (!rodSign) msg = 'Der Stab ist ungeladen. Die Ionen im Wasser werden nicht verschoben, und der Strahl fällt gerade nach unten.';
+    else if (maxS < 0.15) msg = 'Der Stab ist weit weg. Im Strahl fließen gleich viele positive und negative Ionen, der Strahl fällt gerade nach unten.';
+    else if (deflect < 8) msg = 'Die Ionen beginnen sich zu verschieben. Bring den Stab näher an den Strahl.';
+    else msg = 'Der ' + (neg ? 'negative PVC-Stab' : 'positive Acrylglasstab') + ' drängt ' + (neg ? 'negative' : 'positive') + ' Ionen in die Leitung zurück. Der Strahl nimmt ' + (neg ? 'positive' : 'negative') + ' Ladung mit und wird zum Stab gezogen (Influenz).';
+    if (msg !== lastMsg) { lastMsg = msg; st.textContent = msg; }
+  }
+
+  // ---- Zeichnen ----
+  let tok = {}, tokFrame = 0;
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    ['--plus', '--minus', '--sign', '--stage', '--stage-grid', '--water', '--water-hi', '--water-deep', '--metal', '--metal-dark',
+     '--glass', '--paper-line', '--rod', '--acrylic', '--ink', '--muted', '--accent']
+      .forEach(k => tok[k] = cs.getPropertyValue(k).trim());
+  }
+  let chargeR = 10, scale = 1;
+  function fitCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = canvas.getBoundingClientRect().width || W;
+    scale = cssW / W;
+    canvas.width = Math.round(W * scale * dpr);
+    canvas.height = Math.round(H * scale * dpr);
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    chargeR = Math.max(10, 5.5 / scale);
+  }
+
+  function charge(x, y, sign, r) {
+    r = r || chargeR;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = sign > 0 ? tok['--plus'] : tok['--minus'];
+    ctx.fill();
+    ctx.strokeStyle = tok['--sign']; ctx.lineWidth = Math.max(1.6, r * 0.24); ctx.lineCap = 'round';
+    const s = r * 0.5;
+    ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x + s, y);
+    if (sign > 0) { ctx.moveTo(x, y - s); ctx.lineTo(x, y + s); }
+    ctx.stroke();
+  }
+  function label(text, cx, cy, align) {
+    ctx.font = '700 22px "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = tok['--ink'];
+    ctx.fillText(text, cx, cy);
+  }
+
+  function drawStage() {
+    ctx.fillStyle = tok['--stage']; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = tok['--stage-grid']; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 40; x < W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 40; y < H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+
+  function drawTap() {
+    ctx.fillStyle = tok['--metal'];
+    ctx.strokeStyle = tok['--metal-dark']; ctx.lineWidth = 3;
+    // Rohr von links
+    ctx.beginPath(); ctx.rect(0, 30, NOZ.x - 10, 34); ctx.fill(); ctx.stroke();
+    // Auslauf
+    ctx.beginPath();
+    ctx.moveTo(NOZ.x - 34, 26); ctx.lineTo(NOZ.x + 34, 26); ctx.lineTo(NOZ.x + 34, 68);
+    ctx.lineTo(NOZ.x + 18, 68); ctx.lineTo(NOZ.x + 18, NOZ.y); ctx.lineTo(NOZ.x - 18, NOZ.y);
+    ctx.lineTo(NOZ.x - 18, 68); ctx.lineTo(NOZ.x - 34, 68); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    label('Wasserhahn', NOZ.x + 52, 50, 'left');
+  }
+
+  function drawBeaker() {
+    const { x, y, w, h } = BEAKER;
+    ctx.fillStyle = tok['--water-deep']; ctx.globalAlpha = 0.55;
+    ctx.fillRect(x + 4, SURFACE_Y, w - 8, y + h - SURFACE_Y - 4);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = tok['--glass']; ctx.lineWidth = 6; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y); ctx.stroke();
+    label('Becken', x + w + 16, y + 40, 'left');
+  }
+
+  function drawJet(t) {
+    // Strahl
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = tok['--water']; ctx.lineWidth = JET_W;
+    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
+    for (const p of path) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ctx.strokeStyle = tok['--water-hi']; ctx.lineWidth = 4; ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.moveTo(path[0].x - 6, path[0].y);
+    for (const p of path) ctx.lineTo(p.x - 6, p.y);
+    ctx.stroke(); ctx.globalAlpha = 1;
+    // Auftreffstelle
+    const end = path[path.length - 1];
+    ctx.strokeStyle = tok['--water-hi']; ctx.lineWidth = 2;
+    const rr = reduceMotion ? 18 : 14 + (t * 0.03) % 16;
+    ctx.beginPath(); ctx.ellipse(end.x, SURFACE_Y, rr, rr * 0.25, 0, 0, Math.PI * 2); ctx.stroke();
+
+    // Ionen fließen mit dem Strahl nach unten
+    const r = Math.max(8, 4.5 / scale);
+    for (const d of drops) {
+      const p = pointAt(d.t);
+      const off = Math.sin(d.t * 37) * (JET_W / 2 - r + 2);
+      charge(p.x + off, p.y, d.sign, r);
+    }
+  }
+
+  // Ionen im Hahn und in der Leitung; bei geladenem Stab wandern gleichnamige Ionen in die Leitung ab
+  const pipeIons = [];
+  for (let i = 0; i < 9; i++) pipeIons.push({ x: 30 + i * 48, sign: i % 2 ? 1 : -1 });
+  let flowPhase = 0;
+  function drawPipeIons(dt) {
+    const r = Math.max(7, 4 / scale);
+    for (const p of pipeIons) charge(p.x, 39, p.sign, r);
+    const n = Math.round(f * 5);
+    if (!rodSign || n === 0) return;
+    if (!reduceMotion) flowPhase = (flowPhase + dt * 0.06) % 420;
+    for (let k = 0; k < n; k++) {
+      const x = NOZ.x - 20 - ((flowPhase + k * 84) % 420);
+      charge(x, 55, rodSign, r);
+    }
+    ctx.font = '700 17px "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = tok['--ink'];
+    ctx.fillText('← ' + (rodSign < 0 ? 'negative' : 'positive') + ' Ionen weichen in die Leitung aus', 16, 90);
+  }
+
+  function drawRod() {
+    const ex = tip.x + ROD_DIR.x * ROD_LEN, ey = tip.y + ROD_DIR.y * ROD_LEN;
+    const acr = rodSign > 0, neu = rodSign === 0;
+    ctx.lineCap = 'round';
+    if (acr) {
+      ctx.strokeStyle = tok['--paper-line']; ctx.lineWidth = ROD_W + 3;
+      ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(ex, ey); ctx.stroke();
+    }
+    ctx.strokeStyle = acr ? tok['--acrylic'] : tok['--rod']; ctx.lineWidth = ROD_W;
+    ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(ex, ey); ctx.stroke();
+    for (const r of rodCharges) { const p = rodPoint(r.a, r.side, 8); if (rodSign) charge(p.x, p.y, rodSign); }
+  }
+
+  function drawHint(t) {
+    if (everDragged) return;
+    const a = reduceMotion ? 1 : 0.65 + 0.35 * Math.sin(t * 0.004);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = tok['--accent'];
+    ctx.font = '700 19px "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('Stab greifen und dem Strahl nähern', 690, 140);
+    ctx.fillText('(nicht berühren)', 690, 166);
+    ctx.globalAlpha = 1;
+  }
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(50, t - last); last = t;
+    if (tokFrame++ % 30 === 0) readTokens();
+    path = computePath();
+    deflect = Math.abs(path[path.length - 1].x - NOZ.x);
+    f = rodSign ? Math.min(1, maxS) : 0;
+    // Moleküle weiterbewegen
+    const T = path[path.length - 1].t;
+    if (!reduceMotion) {
+      for (const d of drops) d.t += dt / 1000 * 0.55;
+      for (const d of drops) if (d.t > T) { d.t -= T; d.sign = newSign(); }
+    }
+    drawStage();
+    drawBeaker();
+    drawJet(t);
+    drawTap();
+    drawPipeIons(dt);
+    drawRod();
+    drawHint(t);
+    updateReadout();
+    requestAnimationFrame(frame);
+  }
+
+  readTokens();
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+  if ('ResizeObserver' in window) new ResizeObserver(fitCanvas).observe(canvas);
+  init();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+
+
+<!-- STANDARDS.md Abschnitt 4: Seitenfuß -->
+<style>
+.stdfuss{display:block;clear:both;margin:32px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));border-top:1px solid rgba(128,128,128,.35);font:12.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:inherit;text-align:left;position:relative;z-index:1}
+.stdfuss *{box-sizing:border-box}
+.stdfuss p{margin:0 0 8px;max-width:72ch}
+.stdfuss .stdfuss-row{display:flex;flex-wrap:wrap;gap:0 24px;align-items:center}
+.stdfuss .stdfuss-row button{font:inherit;font-weight:700;color:inherit;background:none;border:0;padding:5px 0;min-height:30px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.stdfuss .stdfuss-row button::before{content:"";border:4.5px solid transparent;border-left:6px solid currentColor;border-right:0;transition:transform .15s}
+.stdfuss .stdfuss-row button[aria-expanded="true"]::before{transform:rotate(90deg)}
+.stdfuss .stdfuss-row button[aria-expanded="true"]{text-decoration:underline;text-underline-offset:3px}
+.stdfuss .stdfuss-panel{max-width:72ch;margin-top:4px}
+.stdfuss .stdfuss-panel[hidden]{display:none}
+.stdfuss ul{margin:4px 0 8px;padding-left:20px}
+.stdfuss li{margin:3px 0}
+.stdfuss a{color:inherit;text-decoration:underline}
+.stdfuss .stdfuss-hint{opacity:.75;font-size:12px}
+</style>
+<footer class="stdfuss" lang="de">
+<p>Eigenes Unterrichtsmaterial. Kein offizielles Material der Bremer Bildungsbehörde. Dein Fortschritt wird nur in diesem Browser gespeichert.</p>
+<div class="stdfuss-row">
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p1">Datenschutz</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p2">Impressum</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p3">Schriftlizenzen</button>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p1" hidden>
+<ul>
+<li><b>Keine Datensammlung:</b> Diese Seite erhebt keine personenbezogenen Daten. Keine Anmeldung, keine Cookies, kein Tracking, keine Formulare, die Daten verschicken.</li>
+<li><b>Speicherung nur im Browser:</b> Fortschritt und Eingaben werden höchstens im Speicher deines Browsers auf diesem Gerät abgelegt (localStorage) und nicht übertragen. Du kannst sie in den Einstellungen deines Browsers löschen.</li>
+<li><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub, Inc., USA). GitHub verarbeitet beim Aufruf technisch notwendige Daten wie deine IP-Adresse. <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a></li>
+<li><b>Nichts von fremden Servern:</b> Schriften, Skripte und Bilder werden von dieser Seite selbst geladen.</li>
+<li><b>Deine Rechte:</b> Nach der DSGVO hast du das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung sowie auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde.</li>
+<li><b>Verantwortlich:</b> siehe Impressum.</li>
+<li><b>Datenschutzbeauftragter:</b> datenschutz nord GmbH, Konsul-Smidt-Straße 88, 28217 Bremen, office@datenschutz-nord.de</li>
+</ul>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p2" hidden>
+<p><b>Oberschule an der Hermannsburg</b><br>Hermannsburg 32f<br>28259 Bremen<br>E-Mail: 505@schule.bremen.de</p>
+<p>Vertreten durch den Schulleiter Achim Kaschub</p>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p3" hidden>
+<p>Alle Schriften werden von dieser Seite selbst geladen, ohne Verbindung zu Google oder anderen Schriftdiensten. Sie stehen unter der SIL Open Font License 1.1 und wurden nicht verändert.</p>
+<ul><li><b>Atkinson Hyperlegible</b> – Copyright 2020 Braille Institute of America, Inc.</li><li><b>Bricolage Grotesque</b> – Copyright 2022 The Bricolage Grotesque Project Authors</li></ul>
+<a href="fonts-experimente/LIZENZEN.txt" target="_blank" rel="noopener">Vollständiger Lizenztext</a> (öffnet in neuem Tab)
+</div>
+<noscript><style>.stdfuss .stdfuss-panel[hidden]{display:block}.stdfuss .stdfuss-row{display:none}</style></noscript>
+<script>(function(){var b=document.querySelectorAll('.stdfuss-row button');b.forEach(function(x){x.addEventListener('click',function(){var on=x.getAttribute('aria-expanded')!=='true';b.forEach(function(y){y.setAttribute('aria-expanded','false');document.getElementById(y.getAttribute('aria-controls')).hidden=true;});if(on){x.setAttribute('aria-expanded','true');document.getElementById(x.getAttribute('aria-controls')).hidden=false;}});});})();</script>
+</footer>
+</body></html>
+<!-- Lernseite: Zurück-Leiste und Schloss (Simulation selbst unverändert) -->
+<script>window.SIM_ID = 'wasserstrahl';</script>
+<script src="../data/codes.js"></script>
+<script src="../assets/lock.js"></script>

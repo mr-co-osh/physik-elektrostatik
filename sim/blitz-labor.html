@@ -1,0 +1,849 @@
+<!doctype html><html><head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Blitz-Labor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="fonts-blitz/fonts.css">
+<style>
+/* Layout: one dark "storm night" column — simulator stage on top, live term panel beside it, quiz below. Single deliberate dark look. */
+:root {
+  --night: #10151f;
+  --panel: #172030;
+  --panel-2: #1e2a3d;
+  --line: #2c3a52;
+  --fg: #e8edf5;
+  --muted: #9eabc0;
+  --bolt: #ffd84a;
+  --plus: #ff7a6b;
+  --minus: #63b8ff;
+  --good: #5fd693;
+  --bad: #ff7a6b;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--night); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.05; }
+h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); }
+h1 span { color: var(--bolt); }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 62ch; margin-top: 8px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+nav { display: flex; gap: 8px; }
+nav a { color: var(--fg); text-decoration: none; font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; text-transform: uppercase;
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; }
+nav a:hover, nav a:focus-visible { border-color: var(--bolt); color: var(--bolt); outline: none; }
+nav a[aria-current=page] { background: var(--bolt); border-color: var(--bolt); color: #1b1600; }
+.to-quiz { margin-top: 16px; display: flex; justify-content: flex-end; }
+.to-quiz a { text-decoration: none; display: inline-block; padding: 10px 16px; border-radius: 8px; }
+
+section { margin-top: 36px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.section-head p { color: var(--muted); }
+
+.lab { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+@media (max-width: 900px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+.stage { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 620; max-width: 100%; }
+.status { padding: 10px 14px; border-top: 1px solid var(--line); min-height: 3.2em; display: flex; gap: 10px; align-items: center; }
+.status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: none; }
+.status.warn .dot { background: var(--bolt); box-shadow: 0 0 10px var(--bolt); }
+.status.alarm .dot { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+
+.terms { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.term { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .25s, background .25s; }
+.term .k { font-family: var(--display); font-size: 1.15rem; letter-spacing: .02em; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 8px; }
+.term .k small { font-family: var(--body); font-size: .8rem; color: var(--muted); font-weight: 400; }
+.term p { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+.term.on { border-color: var(--bolt); background: var(--panel-2); }
+.term.on .k { color: var(--bolt); }
+.meter { position: relative; height: 14px; border-radius: 7px; background: #0c1119; border: 1px solid var(--line); margin-top: 8px; overflow: hidden; }
+.meter i { position: absolute; inset: 0 auto 0 0; width: 0%; background: linear-gradient(90deg, var(--minus), var(--bolt)); transition: width .15s linear; }
+.meter b { position: absolute; top: -2px; bottom: -2px; left: 100%; width: 2px; background: var(--fg); }
+.meter-scale { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); margin-top: 3px; }
+
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px; }
+.ctrl { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ctrl h3 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+label { cursor: pointer; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.check { display: flex; gap: 8px; align-items: center; }
+input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--bolt); }
+input[type=range] { width: 100%; accent-color: var(--bolt); }
+.val { font-variant-numeric: tabular-nums; color: var(--bolt); font-weight: 700; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { flex: 1; }
+button { font: inherit; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.seg button { border: 0; border-radius: 0; }
+.seg button + button { border-left: 1px solid var(--line); }
+button[aria-pressed=true] { background: var(--bolt); color: #1b1600; font-weight: 700; }
+button:hover { border-color: var(--bolt); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--bolt); outline-offset: 2px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-main { background: var(--bolt); color: #1b1600; font-weight: 700; border-color: var(--bolt); }
+.timer { font-family: var(--display); font-size: 1.9rem; font-variant-numeric: tabular-nums; color: var(--bolt); line-height: 1; }
+.hint { font-size: .85rem; color: var(--muted); }
+
+/* quiz */
+.quiz { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.q-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.round { font-family: var(--display); font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; color: var(--bolt); }
+.score { font-variant-numeric: tabular-nums; color: var(--muted); }
+.bar { height: 6px; background: #0c1119; border-radius: 3px; overflow: hidden; margin-bottom: 18px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--bolt); transition: width .3s; }
+.q-text { font-size: 1.3rem; font-weight: 700; max-width: 60ch; margin-bottom: 16px; text-wrap: pretty; }
+.opts { display: grid; gap: 10px; }
+.opts.two { grid-template-columns: 1fr 1fr; }
+.opt { text-align: left; padding: 12px 14px; background: var(--panel-2); font-size: 1rem; line-height: 1.35; }
+.opts.two .opt { text-align: center; font-family: var(--display); font-size: 1.4rem; letter-spacing: .03em; }
+.opt.right { background: rgba(95, 214, 147, .18); border-color: var(--good); }
+.opt.wrong { background: rgba(255, 122, 107, .18); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.feedback { margin-top: 14px; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--line); display: none; }
+.feedback.show { display: block; }
+.feedback strong { font-family: var(--display); font-size: 1.2rem; letter-spacing: .02em; }
+.feedback.ok strong { color: var(--good); }
+.feedback.no strong { color: var(--bad); }
+.q-actions { margin-top: 14px; display: flex; justify-content: flex-end; }
+.result { text-align: left; }
+.result .big { font-family: var(--display); font-size: clamp(2.6rem, 8vw, 4rem); color: var(--bolt); line-height: 1; }
+.review { margin-top: 16px; display: grid; gap: 8px; }
+.review div { border-left: 3px solid var(--bad); padding: 6px 10px; background: var(--panel-2); border-radius: 0 6px 6px 0; font-size: .95rem; }
+.review div b { display: block; }
+footer { margin-top: 40px; color: var(--muted); font-size: .85rem; }
+@media (max-width: 480px) { .opts.two { grid-template-columns: 1fr; } .quiz { padding: 16px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Blitz-<span>Labor</span></h1>
+      <p class="lead" id="lead">Steuere den Aufwind in der Gewitterwolke und beobachte, wie aus Ladungstrennung ein Blitz wird.</p>
+    </div>
+    <nav aria-label="Ansicht"><a href="#simulator" id="nav-sim">Simulator</a><a href="#quiz" id="nav-quiz">Quiz</a></nav>
+  </header>
+
+  <section id="simulator" aria-labelledby="sim-h">
+    <div class="section-head"><h2 id="sim-h">Simulator</h2><p>Querschnitt durch eine Gewitterwolke über dem Sportplatz (nicht maßstabsgetreu)</p></div>
+    <div class="lab">
+      <div class="stage">
+        <canvas id="cv" width="1000" height="620" role="img" aria-label="Gewitterwolke mit Eiskristallen und Graupelkörnern, darunter Sportplatz mit Baum, Flutlichtmast und Bus"></canvas>
+        <div class="status" id="status" aria-live="polite"><span class="dot"></span><span id="status-text">Der Aufwind trägt Eiskristalle nach oben, Graupelkörner fallen nach unten.</span></div>
+      </div>
+      <div class="terms" aria-label="Fachbegriffe">
+        <div class="term" id="t-trenn"><div class="k">Ladungstrennung <small id="t-trenn-n">0 Stöße</small></div><p>Beim Zusammenstoß gehen Elektronen vom Eiskristall auf das Graupelkorn über.</p></div>
+        <div class="term" id="t-unter"><div class="k">Ladungsunterschied</div><p>Oben Elektronenmangel (+), unten Elektronenüberschuss (−), am Boden wieder Elektronenmangel (+).</p></div>
+        <div class="term" id="t-span"><div class="k">Ladungsausgleichsbestreben <small>(Spannung)</small></div>
+          <div class="meter" aria-hidden="true"><i id="meter"></i><b></b></div>
+          <div class="meter-scale"><span>klein</span><span>Luft wird leitend</span></div>
+        </div>
+        <div class="term" id="t-strom"><div class="k">Ladungsbewegung <small>(Strom)</small></div><p>Elektronen bewegen sich schlagartig durch die Luft: der Blitz. <span id="strikes">Blitze: 0</span></p></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <h3>Aufwind</h3>
+        <div class="row"><label for="updraft">Stärke</label><span class="val" id="updraft-v">mittel</span></div>
+        <input type="range" id="updraft" min="0" max="100" value="60" aria-describedby="updraft-h">
+        <p class="hint" id="updraft-h">Ohne Aufwind keine Zusammenstöße und keine Ladungstrennung.</p>
+      </div>
+      <div class="ctrl">
+        <h3>Sportplatz</h3>
+        <label class="check"><input type="checkbox" id="o-mast" checked> Flutlichtmast (25 m)</label>
+        <label class="check"><input type="checkbox" id="o-rod" checked> mit Blitzableiter</label>
+        <label class="check"><input type="checkbox" id="o-tree" checked> einzelner Baum</label>
+        <label class="check"><input type="checkbox" id="o-person"> Person auf dem Platz</label>
+      </div>
+      <div class="ctrl">
+        <h3>Einschlag</h3>
+        <div class="seg" role="group" aria-label="Einschlagziel">
+          <button type="button" id="m-auto" aria-pressed="true">Höchster Punkt</button>
+          <button type="button" id="m-bus" aria-pressed="false">Bus-Test</button>
+        </div>
+        <div class="btns"><button type="button" id="pause">Pause</button><button type="button" id="reset">Zurücksetzen</button></div>
+      </div>
+      <div class="ctrl">
+        <h3>Donner-Stoppuhr</h3>
+        <div class="row"><label for="dist">Dein Abstand</label><span class="val" id="dist-v">3 km</span></div>
+        <input type="range" id="dist" min="1" max="10" value="3">
+        <div class="row"><span class="timer" id="timer">0,0 s</span><label class="check"><input type="checkbox" id="sound"> Ton</label></div>
+        <p class="hint" id="timer-h">Startet beim nächsten Blitz.</p>
+      </div>
+    </div>
+    <div class="to-quiz"><a href="#quiz" class="btn-main">Weiter zum Quiz →</a></div>
+  </section>
+
+  <section id="quiz" aria-labelledby="quiz-h" hidden>
+    <div class="section-head"><h2 id="quiz-h">Quiz</h2><p>Runde 1: Wie entsteht ein Blitz? · Runde 2: Sicher oder gefährlich?</p></div>
+    <div class="quiz" id="quiz-box"></div>
+  </section>
+
+  <footer>Physik 9/10 · Elektrostatik · Gewitter. Vereinfachtes Schulmodell: Eiskristalle oben positiv, Graupel unten negativ.</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+
+/* ---------------------------------------------------------------- canvas setup */
+const cv = $("cv"), ctx = cv.getContext("2d");
+const W = 1000, H = 620, GROUND = 540, BASE = 295, TOP = 62;
+function fit() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fit(); addEventListener("resize", fit);
+
+const C = { plus: "#ff7a6b", minus: "#63b8ff", bolt: "#ffd84a", fg: "#e8edf5", muted: "#9eabc0" };
+const rnd = (a, b) => a + Math.random() * (b - a);
+const CLOUD_X0 = 230, CLOUD_X1 = 790;
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  updraft: 0.6, paused: false, mode: "auto",
+  mast: true, rod: true, tree: true, person: false,
+  particles: [], collisions: 0, lastCollision: -9, strikes: 0,
+  strike: null, effects: [], mastBroken: 0, flash: 0, shake: 0,
+  thunder: null, t: 0,
+};
+const THRESH = 30;
+
+function makeParticles() {
+  S.particles = [];
+  for (let i = 0; i < 90; i++) {
+    const ice = i % 2 === 0;
+    S.particles.push({ ice, x: rnd(CLOUD_X0 + 30, CLOUD_X1 - 30), y: rnd(TOP + 40, BASE - 20), q: 0,
+      vx: rnd(-.3, .3), ph: rnd(0, 6.3), lim: rnd(0, 55) });
+  }
+}
+makeParticles();
+const charge = () => S.particles.reduce((n, p) => n + (p.ice && p.q > 0 ? 1 : 0), 0);
+
+/* ---------------------------------------------------------------- objects */
+const OBJ = {
+  mast: { x: 640, top: GROUND - 145 },
+  tree: { x: 300, top: GROUND - 100 },
+  person: { x: 455, top: GROUND - 40 },
+  bus: { x: 840, top: GROUND - 54 },
+};
+function target() {
+  if (S.mode === "bus") return { kind: "bus", x: OBJ.bus.x, y: OBJ.bus.top };
+  if (S.mast) return { kind: "mast", x: OBJ.mast.x, y: OBJ.mast.top };
+  if (S.tree) return { kind: "tree", x: OBJ.tree.x, y: OBJ.tree.top };
+  if (S.person) return { kind: "person", x: OBJ.person.x, y: OBJ.person.top };
+  return { kind: "ground", x: 520, y: GROUND };
+}
+
+/* ---------------------------------------------------------------- status + terms */
+let statusKey = "";
+function status(text, level = "", key = text) {
+  if (key === statusKey) return;
+  statusKey = key;
+  $("status-text").textContent = text;
+  $("status").className = "status " + level;
+}
+function terms(q) {
+  const ratio = Math.min(q / THRESH, 1);
+  $("meter").style.width = (ratio * 100).toFixed(1) + "%";
+  $("t-trenn").classList.toggle("on", S.t - S.lastCollision < 0.6 && !S.strike);
+  $("t-trenn-n").textContent = S.collisions + (S.collisions === 1 ? " Stoß" : " Stöße");
+  $("t-unter").classList.toggle("on", q > 3 && !S.strike);
+  $("t-span").classList.toggle("on", ratio > 0.6 && !S.strike);
+  $("t-strom").classList.toggle("on", !!S.strike);
+}
+
+/* ---------------------------------------------------------------- simulation step */
+function step(dt) {
+  const u = S.updraft;
+  const midX = (CLOUD_X0 + CLOUD_X1) / 2;
+  for (const p of S.particles) {
+    p.ph += dt * 2;
+    const core = Math.max(0, 1 - Math.abs(p.x - midX) / 280);
+    let vy;
+    if (p.ice) vy = -(0.15 + 1.6 * u * (0.5 + core)) ;
+    else vy = 0.9 - 1.15 * u * (0.4 + core * 0.6);
+    vy += Math.sin(p.ph) * 0.25;
+    p.x += (p.vx + Math.cos(p.ph * 0.7) * 0.25) * dt * 60;
+    p.y += vy * dt * 60 * 0.9;
+    // bounds
+    if (p.x < CLOUD_X0 + 15) { p.x = CLOUD_X0 + 15; p.vx = Math.abs(p.vx); }
+    if (p.x > CLOUD_X1 - 15) { p.x = CLOUD_X1 - 15; p.vx = -Math.abs(p.vx); }
+    const top = TOP + 22 + (p.q ? p.lim : 0), bot = BASE - 10 - (p.q ? p.lim : 0);
+    if (p.y < top) p.y = top + Math.random();
+    if (p.y > bot) p.y = bot - Math.random();
+    // turbulent recirculation of neutral particles (keeps the charging zone supplied)
+    if (u > 0.05 && p.q === 0) {
+      if (p.ice && p.y < TOP + 40 && Math.random() < dt * 0.6) { p.y = rnd(BASE - 70, BASE - 20); }
+      if (!p.ice && p.y > BASE - 30 && Math.random() < dt * 0.6 * u) { p.y = rnd(TOP + 40, TOP + 110); }
+    }
+  }
+  // collisions in the mixing zone
+  if (u > 0.02 && !S.strike) {
+    S.budget = Math.min(2, (S.budget || 0) + dt * 7 * u);
+    const ice = S.particles.filter(p => p.ice && p.q === 0);
+    const gr = S.particles.filter(p => !p.ice && p.q === 0);
+    for (const a of ice) for (const b of gr) {
+      const dx = a.x - b.x, dy = a.y - b.y;
+      if (S.budget >= 1 && dx * dx + dy * dy < 900) {
+        S.budget -= 1;
+        a.q = 1; b.q = -1; S.collisions++; S.lastCollision = S.t;
+        S.effects.push({ type: "spark", x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, t: 0 });
+        break;
+      }
+    }
+  }
+  const q = charge();
+  if (!S.strike && q >= THRESH) startStrike();
+  if (S.person && !S.strike) S.hair = q / THRESH > 0.55;
+  // narrate
+  if (!S.strike) {
+    if (u < 0.02) status("Kein Aufwind: Die Teilchen stoßen kaum zusammen, es findet keine Ladungstrennung statt.", "", "noup");
+    else if (S.person && q / THRESH > 0.55) status("Der Person stehen die Haare zu Berge! Sie hat wie der Boden Elektronenmangel. Sofort Schutz suchen!", "alarm", "hair");
+    else if (q / THRESH > 0.75) status("Der Ladungsunterschied ist riesig. Gleich wird die Luft leitend …", "warn", "soon");
+    else if (q > 3) status("Ladungstrennung: Positive Eiskristalle steigen nach oben, negative Graupelkörner sammeln sich unten.", "", "sep");
+    else status("Der Aufwind wirbelt Eiskristalle und Graupelkörner durcheinander.", "", "mix");
+  }
+  terms(q);
+}
+
+/* ---------------------------------------------------------------- strike */
+function bolt(x0, y0, x1, y1, rough) {
+  const pts = [[x0, y0]];
+  const n = Math.max(6, Math.round((y1 - y0) / 18));
+  for (let i = 1; i < n; i++) {
+    const f = i / n;
+    pts.push([x0 + (x1 - x0) * f + rnd(-rough, rough), y0 + (y1 - y0) * f + rnd(-4, 4)]);
+  }
+  pts.push([x1, y1]);
+  return pts;
+}
+function startStrike() {
+  const tg = target();
+  const x0 = Math.min(Math.max(tg.x + rnd(-90, 90), CLOUD_X0 + 60), CLOUD_X1 - 60);
+  const main = bolt(x0, BASE - 5, tg.x, tg.y, 16);
+  const branches = [];
+  for (let k = 0; k < 3; k++) {
+    const i = 2 + Math.floor(Math.random() * (main.length - 4));
+    const [bx, by] = main[i];
+    branches.push(bolt(bx, by, bx + rnd(-90, 90), by + rnd(40, 90), 10));
+  }
+  S.strike = { tg, main, branches, t: 0 };
+  S.strikes++; $("strikes").textContent = "Blitze: " + S.strikes;
+  const msg = {
+    mast: S.rod ? "Einschlag im Flutlichtmast! Der Blitzableiter leitet die Ladungen über das Kupferkabel in den Boden."
+                : "Einschlag im Flutlichtmast ohne Blitzableiter: Die Lampen werden zerstört.",
+    tree: "Einschlag im Baum! Einzelne Bäume sind gefährlich – nie darunter Schutz suchen.",
+    person: "Kein Mast, kein Baum: Die Person ist der höchste Punkt und wird getroffen! Auf freiem Feld in eine Mulde hocken, Füße zusammen.",
+    ground: "Der Blitz schlägt in den Boden ein.",
+    bus: "Einschlag im Bus! Die Ladungen fließen außen über die Metallhülle in den Boden. Innen sind alle sicher (Faradayscher Käfig).",
+  }[tg.kind];
+  status("Blitz! Ladungsbewegung (Strom): " + msg, "alarm", "strike" + S.strikes);
+  // thunder stopwatch
+  const km = +$("dist").value;
+  if (!S.thunder || S.thunder.done) S.thunder = { start: performance.now(), delay: km / 0.343, km, done: false }; // seconds
+  if (!S.thunder.done) $("timer-h").textContent = "Blitz gesehen. Zähle bis zum Donner …";
+  if (!reduceMotion) S.flash = 1;
+}
+function endStrike() {
+  const tg = S.strike.tg;
+  if (tg.kind === "mast" && S.rod) S.effects.push({ type: "flow", path: "mast", t: 0 });
+  if (tg.kind === "mast" && !S.rod) S.mastBroken = 6;
+  if (tg.kind === "bus") S.effects.push({ type: "flow", path: "bus", t: 0 });
+  if (tg.kind === "tree" || tg.kind === "person" || (tg.kind === "mast" && !S.rod))
+    for (let i = 0; i < 14; i++) S.effects.push({ type: "ember", x: tg.x, y: tg.y + 6, vx: rnd(-2, 2), vy: rnd(-3, -0.5), t: 0 });
+  // Ladungsausgleich: most charges neutralised, turbulence mixes particles again
+  for (const p of S.particles) {
+    if (p.q !== 0 && Math.random() < 0.9) p.q = 0;
+    if (Math.random() < 0.5) p.y = rnd(TOP + 60, BASE - 40);
+  }
+  S.hair = false;
+  S.strike = null;
+}
+function tickThunder() {
+  const th = S.thunder;
+  if (!th) return;
+  const el = (performance.now() - th.start) / 1000;
+  if (!th.done) {
+    $("timer").textContent = el.toFixed(1).replace(".", ",") + " s";
+    if (el >= th.delay) {
+      th.done = true;
+      const s = th.delay.toFixed(1).replace(".", ",");
+      $("timer").textContent = s + " s";
+      $("timer-h").textContent = `Donner nach ${s} s → ${s} s : 3 ≈ ${(th.delay / 3).toFixed(1).replace(".", ",")} km entfernt.`;
+      if (!reduceMotion) S.shake = 0.6;
+      if ($("sound").checked) thunderSound(th.km);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- sound */
+let actx = null;
+function thunderSound(km) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const dur = 2.6, sr = actx.sampleRate, buf = actx.createBuffer(1, sr * dur, sr), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < d.length; i++) {
+      const t = i / sr;
+      const env = Math.min(1, t * 12) * Math.exp(-t * 1.4) * (0.6 + 0.4 * Math.sin(t * 9 + Math.sin(t * 3) * 4));
+      last = 0.97 * last + 0.03 * (Math.random() * 2 - 1);
+      d[i] = last * env * 9;
+    }
+    const src = actx.createBufferSource(); src.buffer = buf;
+    const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 380 - km * 22;
+    const g = actx.createGain(); g.gain.value = Math.max(0.25, 1.1 - km * 0.08);
+    src.connect(lp).connect(g).connect(actx.destination); src.start();
+  } catch (e) { /* audio not available */ }
+}
+
+/* ---------------------------------------------------------------- drawing */
+function sky() {
+  const g = ctx.createLinearGradient(0, 0, 0, GROUND);
+  g.addColorStop(0, "#0b1018"); g.addColorStop(1, "#1a2335");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, GROUND);
+  // height scale
+  ctx.strokeStyle = "rgba(158,171,192,.5)"; ctx.fillStyle = C.muted; ctx.lineWidth = 1;
+  ctx.font = "12px 'Atkinson Hyperlegible', sans-serif"; ctx.textAlign = "right";
+  ctx.beginPath(); ctx.moveTo(40, GROUND); ctx.lineTo(40, TOP - 10); ctx.stroke();
+  const kmPx = (GROUND - TOP) / 10;
+  for (let k = 0; k <= 10; k += 2) {
+    const y = GROUND - k * kmPx;
+    ctx.beginPath(); ctx.moveTo(35, y); ctx.lineTo(45, y); ctx.stroke();
+    ctx.fillText(k + " km", 32, y + 4);
+  }
+}
+const puffs = [];
+(function buildCloud() {
+  for (let x = CLOUD_X0 + 20; x <= CLOUD_X1 - 20; x += 46) puffs.push([x, BASE - 14 + Math.sin(x) * 5, 36]);
+  for (let y = BASE - 60; y > TOP + 50; y -= 50) { puffs.push([CLOUD_X0 + 10, y, 52]); puffs.push([CLOUD_X1 - 10, y, 52]); }
+  for (let x = CLOUD_X0 - 40; x <= CLOUD_X1 + 60; x += 50) puffs.push([x, TOP + 18 + Math.abs(x - 510) * 0.02, 30]);
+})();
+function cloud(light) {
+  const g = ctx.createLinearGradient(0, TOP - 30, 0, BASE + 40);
+  g.addColorStop(0, `rgba(${200 + light * 55},${210 + light * 45},${225 + light * 30},.95)`);
+  g.addColorStop(0.55, `rgba(${110 + light * 120},${122 + light * 110},${140 + light * 100},.95)`);
+  g.addColorStop(1, `rgba(${55 + light * 150},${62 + light * 150},${78 + light * 150},.98)`);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(CLOUD_X0, TOP + 10, CLOUD_X1 - CLOUD_X0, BASE - TOP, 40) : ctx.rect(CLOUD_X0, TOP + 10, CLOUD_X1 - CLOUD_X0, BASE - TOP);
+  ctx.fill();
+  // anvil
+  ctx.beginPath();
+  ctx.moveTo(CLOUD_X0 - 70, TOP + 40); ctx.quadraticCurveTo(CLOUD_X0 - 30, TOP - 12, CLOUD_X0 + 60, TOP - 10);
+  ctx.lineTo(CLOUD_X1 + 40, TOP - 18); ctx.quadraticCurveTo(CLOUD_X1 + 150, TOP - 8, CLOUD_X1 + 120, TOP + 36);
+  ctx.lineTo(CLOUD_X0 - 70, TOP + 40); ctx.fill();
+  for (const [x, y, r] of puffs) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+}
+function updraftArrows() {
+  const u = S.updraft; if (u < 0.02) return;
+  const midX = (CLOUD_X0 + CLOUD_X1) / 2;
+  ctx.save(); ctx.globalAlpha = 0.18 + u * 0.35; ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 3;
+  for (let k = 0; k < 7; k++) {
+    const y = GROUND - 30 - ((S.t * 70 * (0.4 + u) + k * 70) % 470);
+    ctx.beginPath(); ctx.moveTo(midX - 18, y + 14); ctx.lineTo(midX, y); ctx.lineTo(midX + 18, y + 14); ctx.stroke();
+  }
+  ctx.restore();
+}
+function hex(x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i + Math.PI / 6; ctx[i ? "lineTo" : "moveTo"](x + r * Math.cos(a), y + r * Math.sin(a)); }
+  ctx.closePath();
+}
+function particles() {
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold 11px sans-serif";
+  for (const p of S.particles) {
+    if (p.ice) {
+      hex(p.x, p.y, 7);
+      ctx.fillStyle = p.q > 0 ? "#fff1ee" : "rgba(240,246,255,.85)"; ctx.fill();
+      ctx.lineWidth = p.q > 0 ? 2 : 1; ctx.strokeStyle = p.q > 0 ? C.plus : "rgba(120,140,170,.9)"; ctx.stroke();
+      if (p.q > 0) { ctx.fillStyle = "#c62828"; ctx.fillText("+", p.x, p.y + .5); }
+    } else {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, 7);
+      ctx.fillStyle = p.q < 0 ? "#d7e9ff" : "rgba(170,182,200,.9)"; ctx.fill();
+      ctx.lineWidth = p.q < 0 ? 2 : 1; ctx.strokeStyle = p.q < 0 ? "#2a6fd6" : "rgba(90,105,130,.9)"; ctx.stroke();
+      if (p.q < 0) { ctx.fillStyle = "#1f4e9c"; ctx.font = "bold 14px sans-serif"; ctx.fillText("−", p.x, p.y + .5); ctx.font = "bold 11px sans-serif"; }
+    }
+  }
+  ctx.textBaseline = "alphabetic";
+}
+function ground(q) {
+  ctx.fillStyle = "#1d3a24"; ctx.fillRect(0, GROUND, W, H - GROUND);
+  ctx.fillStyle = "#2f5a36"; ctx.fillRect(0, GROUND, W, 5);
+  // field lines
+  ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 2;
+  ctx.strokeRect(380, GROUND + 18, 360, 50);
+  // induced positive charges under the cloud
+  const n = Math.round(q / THRESH * 14);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold 13px sans-serif";
+  for (let i = 0; i < n; i++) {
+    const x = CLOUD_X0 + 20 + i * ((CLOUD_X1 - CLOUD_X0 - 40) / 13), y = GROUND + 42;
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fillStyle = "#fff1ee"; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = C.plus; ctx.stroke(); ctx.fillStyle = "#c62828"; ctx.fillText("+", x, y + .5);
+  }
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = C.muted; ctx.font = "13px 'Atkinson Hyperlegible', sans-serif"; ctx.textAlign = "left";
+  ctx.fillText("Erdboden", 52, GROUND + 26);
+}
+function objects() {
+  // tree
+  if (S.tree) {
+    const { x } = OBJ.tree;
+    ctx.fillStyle = "#6b4a2b"; ctx.fillRect(x - 7, GROUND - 40, 14, 40);
+    ctx.fillStyle = "#3f7d3a"; ctx.beginPath(); ctx.arc(x, GROUND - 62, 34, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x - 18, GROUND - 52, 22, 0, 7); ctx.arc(x + 18, GROUND - 52, 22, 0, 7); ctx.fill();
+  }
+  // mast
+  if (S.mast) {
+    const { x } = OBJ.mast;
+    ctx.fillStyle = "#8a93a0"; ctx.fillRect(x - 5, GROUND - 120, 10, 120);
+    ctx.fillStyle = "#4b5260"; ctx.fillRect(x - 28, GROUND - 125, 56, 22);
+    const lit = S.mastBroken <= 0;
+    for (let i = 0; i < 4; i++) { ctx.fillStyle = lit ? "#fff3b0" : "#2a2f38"; ctx.fillRect(x - 24 + i * 13, GROUND - 122, 10, 15); }
+    if (lit) { ctx.save(); ctx.globalAlpha = .08; ctx.fillStyle = "#fff3b0";
+      ctx.beginPath(); ctx.moveTo(x - 26, GROUND - 105); ctx.lineTo(x - 140, GROUND); ctx.lineTo(x + 140, GROUND); ctx.lineTo(x + 26, GROUND - 105); ctx.fill(); ctx.restore(); }
+    if (S.rod) {
+      ctx.strokeStyle = "#c98a4b"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x, GROUND - 125); ctx.lineTo(x, OBJ.mast.top); ctx.stroke();
+      ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, GROUND - 103); ctx.lineTo(x + 8, GROUND + 20); ctx.stroke();
+    }
+    if (!lit) { // smoke
+      ctx.fillStyle = "rgba(160,160,160,.25)";
+      for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(x + Math.sin(S.t * 2 + i) * 8, GROUND - 135 - i * 14 - (S.t * 20 % 14), 8 + i * 3, 0, 7); ctx.fill(); }
+    }
+    ctx.fillStyle = C.muted; ctx.font = "12px 'Atkinson Hyperlegible', sans-serif"; ctx.textAlign = "left";
+    ctx.fillText("Flutlichtmast", x + 14, GROUND - 80);
+  }
+  // person
+  if (S.person) {
+    const { x } = OBJ.person, top = GROUND - 34;
+    ctx.strokeStyle = C.fg; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.arc(x, top + 4, 5, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, top + 9); ctx.lineTo(x, top + 22); ctx.moveTo(x, top + 22); ctx.lineTo(x - 6, GROUND);
+    ctx.moveTo(x, top + 22); ctx.lineTo(x + 6, GROUND); ctx.moveTo(x - 8, top + 14); ctx.lineTo(x + 8, top + 14); ctx.stroke();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#e3b65a";
+    for (let i = -3; i <= 3; i++) {
+      const a = S.hair ? -Math.PI / 2 + i * 0.28 : Math.PI / 2 + i * 0.5;
+      const len = S.hair ? 9 : 5;
+      ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * 5, top + 4 + Math.sin(a) * 5);
+      if (S.hair) ctx.lineTo(x + Math.cos(a) * (5 + len), top + 4 + Math.sin(a) * (5 + len));
+      else ctx.lineTo(x + Math.cos(a - 1.4) * 6, top + 4 + Math.sin(a - 1.4) * 6 + 2);
+      ctx.stroke();
+    }
+    ctx.lineCap = "butt";
+  }
+  // bus
+  const b = OBJ.bus.x;
+  ctx.fillStyle = "#e9b829"; ctx.strokeStyle = "#7d6a2a"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(b - 70, GROUND - 54, 140, 46, 8) : ctx.rect(b - 70, GROUND - 54, 140, 46); ctx.fill(); ctx.stroke();
+  for (let i = 0; i < 5; i++) { ctx.fillStyle = "#bcd8ee"; ctx.fillRect(b - 62 + i * 26, GROUND - 47, 20, 16); }
+  ctx.fillStyle = "#3b2f20"; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(b - 52 + i * 26, GROUND - 38, 4, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#222"; for (const wx of [b - 42, b + 42]) { ctx.beginPath(); ctx.arc(wx, GROUND - 6, 10, 0, 7); ctx.fill(); }
+}
+function drawBolt(pts, w, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = "round";
+  ctx.shadowColor = C.bolt; ctx.shadowBlur = 22;
+  ctx.strokeStyle = C.bolt; ctx.lineWidth = w;
+  ctx.beginPath(); pts.forEach(([x, y], i) => ctx[i ? "lineTo" : "moveTo"](x, y)); ctx.stroke();
+  ctx.shadowBlur = 0; ctx.strokeStyle = "#fffbe8"; ctx.lineWidth = Math.max(1, w * 0.35); ctx.stroke();
+  ctx.restore();
+}
+function strikeDraw(dt) {
+  const s = S.strike; if (!s) return;
+  s.t += dt;
+  const LEAD = 0.45, RET = 0.35;
+  if (s.t < LEAD) {
+    const n = Math.max(2, Math.floor(s.main.length * s.t / LEAD));
+    drawBolt(s.main.slice(0, n), 1.5, 0.75);
+    s.branches.forEach(b => drawBolt(b.slice(0, Math.floor(b.length * s.t / LEAD)), 1, 0.5));
+  } else if (s.t < LEAD + RET) {
+    const k = 1 - (s.t - LEAD) / RET;
+    drawBolt(s.main, 7, 0.6 + 0.4 * k);
+    s.branches.forEach(b => drawBolt(b, 2.5, 0.7 * k));
+    // electrons travelling down the channel
+    ctx.fillStyle = C.minus;
+    for (let i = 0; i < 8; i++) {
+      const f = ((s.t * 4 + i / 8) % 1), idx = Math.floor(f * (s.main.length - 1));
+      const [x, y] = s.main[idx]; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
+    }
+  } else endStrike();
+}
+function effects(dt) {
+  for (const e of S.effects) {
+    e.t += dt;
+    if (e.type === "spark") {
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - e.t / 0.4); ctx.strokeStyle = C.bolt; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 4; i++) { const a = i * 1.57 + e.t * 3; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + Math.cos(a) * 9, e.y + Math.sin(a) * 9); ctx.stroke(); }
+      ctx.restore();
+    } else if (e.type === "ember") {
+      e.x += e.vx; e.y += e.vy; e.vy += 0.15;
+      ctx.fillStyle = `rgba(255,${150 + Math.random() * 80},60,${Math.max(0, 1 - e.t / 1.2)})`;
+      ctx.beginPath(); ctx.arc(e.x, e.y, 2.5, 0, 7); ctx.fill();
+    } else if (e.type === "flow") {
+      const path = e.path === "mast"
+        ? [[OBJ.mast.x, OBJ.mast.top], [OBJ.mast.x, GROUND - 125], [OBJ.mast.x + 8, GROUND - 103], [OBJ.mast.x + 8, GROUND + 22]]
+        : [[OBJ.bus.x, GROUND - 54], [OBJ.bus.x - 70, GROUND - 54], [OBJ.bus.x - 70, GROUND - 8], [OBJ.bus.x - 42, GROUND + 4],
+           null, [OBJ.bus.x, GROUND - 54], [OBJ.bus.x + 70, GROUND - 54], [OBJ.bus.x + 70, GROUND - 8], [OBJ.bus.x + 42, GROUND + 4]];
+      const segs = []; let cur = [];
+      for (const p of path) { if (!p) { segs.push(cur); cur = []; } else cur.push(p); } segs.push(cur);
+      ctx.fillStyle = C.minus;
+      for (const sg of segs) {
+        for (let i = 0; i < 6; i++) {
+          const f = (e.t * 0.9 + i / 6) % 1; const L = sg.length - 1; const fi = f * L; const k = Math.floor(fi), r = fi - k;
+          const [x1, y1] = sg[k], [x2, y2] = sg[Math.min(k + 1, L)];
+          ctx.globalAlpha = Math.max(0, 1 - e.t / 2.4);
+          ctx.beginPath(); ctx.arc(x1 + (x2 - x1) * r, y1 + (y2 - y1) * r, 3.5, 0, 7); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (e.path === "bus" && e.t < 2.4) {
+        ctx.font = "bold 13px 'Atkinson Hyperlegible', sans-serif"; ctx.textAlign = "center";
+        ctx.fillStyle = "#5fd693"; ctx.fillText("innen sicher", OBJ.bus.x, GROUND - 64);
+      }
+    }
+  }
+  S.effects = S.effects.filter(e => e.t < (e.type === "flow" ? 2.4 : e.type === "ember" ? 1.2 : 0.4));
+}
+function labels() {
+  ctx.font = "bold 13px 'Atkinson Hyperlegible', sans-serif"; ctx.textAlign = "left";
+  ctx.fillStyle = C.plus; ctx.fillText("Eiskristalle (+)", CLOUD_X1 + 40, TOP + 70);
+  ctx.fillStyle = C.minus; ctx.fillText("Graupelkörner (−)", CLOUD_X1 + 22, BASE - 30);
+  ctx.fillStyle = "#ffb347"; ctx.textAlign = "center"; ctx.fillText("Aufwind", (CLOUD_X0 + CLOUD_X1) / 2, GROUND - 12);
+}
+
+/* ---------------------------------------------------------------- loop */
+let last = performance.now();
+function frame(now) {
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (S.paused) dt = 0;
+  S.t += dt;
+  if (dt) step(dt);
+  if (S.mastBroken > 0) S.mastBroken -= dt;
+  const q = charge();
+  ctx.save();
+  if (S.shake > 0) { ctx.translate(rnd(-4, 4) * S.shake, rnd(-3, 3) * S.shake); S.shake -= dt; }
+  sky();
+  updraftArrows();
+  cloud(S.flash * 0.6);
+  particles();
+  ground(q);
+  objects();
+  labels();
+  strikeDraw(dt);
+  effects(dt);
+  if (S.flash > 0) { ctx.fillStyle = `rgba(255,250,225,${S.flash * 0.35})`; ctx.fillRect(0, 0, W, H); S.flash = Math.max(0, S.flash - dt * 2.5); }
+  ctx.restore();
+  tickThunder();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------------------------------------------------------------- controls */
+const upd = $("updraft");
+function setUpdraft() {
+  S.updraft = upd.value / 100;
+  $("updraft-v").textContent = upd.value == 0 ? "aus" : upd.value < 35 ? "schwach" : upd.value < 70 ? "mittel" : "stark";
+}
+upd.addEventListener("input", setUpdraft); setUpdraft();
+for (const [id, key] of [["o-mast", "mast"], ["o-rod", "rod"], ["o-tree", "tree"], ["o-person", "person"]]) {
+  $(id).addEventListener("change", e => { S[key] = e.target.checked; if (key === "mast") $("o-rod").disabled = !S.mast; if (key === "rod") S.mastBroken = 0; });
+}
+function setMode(m) { S.mode = m; $("m-auto").setAttribute("aria-pressed", m === "auto"); $("m-bus").setAttribute("aria-pressed", m === "bus"); }
+$("m-auto").onclick = () => setMode("auto");
+$("m-bus").onclick = () => setMode("bus");
+$("pause").onclick = () => { S.paused = !S.paused; S.userPaused = S.paused; $("pause").textContent = S.paused ? "Weiter" : "Pause"; };
+$("reset").onclick = () => {
+  makeParticles(); S.collisions = 0; S.strikes = 0; S.strike = null; S.effects = []; S.mastBroken = 0; S.thunder = null; S.hair = false;
+  $("strikes").textContent = "Blitze: 0"; $("timer").textContent = "0,0 s"; $("timer-h").textContent = "Startet beim nächsten Blitz.";
+};
+const dist = $("dist");
+dist.addEventListener("input", () => { $("dist-v").textContent = dist.value + " km"; });
+$("sound").addEventListener("change", e => { if (e.target.checked) { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (err) {} } });
+
+/* ================================================================ QUIZ */
+const R1 = [
+  { q: "Was passiert, wenn in der Gewitterwolke ein Eiskristall und ein Graupelkorn zusammenstoßen?",
+    a: ["Elektronen gehen vom Eiskristall auf das Graupelkorn über.", "Es entstehen neue Ladungen aus dem Nichts.", "Protonen springen vom Graupelkorn auf den Eiskristall.", "Beide Teilchen werden dabei neutral."],
+    e: "Das ist Ladungstrennung: Ladungen werden nicht erzeugt, sondern nur getrennt. Der Eiskristall hat danach Elektronenmangel (+), das Graupelkorn Elektronenüberschuss (−)." },
+  { q: "Wo sammeln sich die negativ geladenen Graupelkörner?",
+    a: ["Im unteren Teil der Wolke, weil sie schwer sind.", "Ganz oben in der Wolke, weil der Aufwind sie trägt.", "Gleichmäßig verteilt in der ganzen Wolke.", "Am Erdboden."],
+    e: "Der Aufwind trägt die leichten Eiskristalle nach oben. Die schweren Graupelkörner sinken nach unten. So entsteht oben +, unten −." },
+  { q: "Warum hat der Erdboden unter der Gewitterwolke Elektronenmangel?",
+    a: ["Die negative Wolkenunterseite stößt die Elektronen im Boden ab.", "Der Regen spült die Elektronen weg.", "Die Sonne zieht die Elektronen aus dem Boden.", "Der Boden war schon immer positiv geladen."],
+    e: "Gleichartige Ladungen stoßen sich ab. Deshalb standen Emma die Haare zu Berge: Auch ihr Körper hatte Elektronenmangel." },
+  { q: "Wie nennt man das Bestreben getrennter Ladungen, sich wieder auszugleichen?",
+    a: ["Elektrische Spannung", "Elektrischer Strom", "Ladungstrennung", "Reibung"],
+    e: "Je größer der Ladungsunterschied, desto größer das Ladungsausgleichsbestreben – die elektrische Spannung." },
+  { q: "Wann entsteht ein Blitz?",
+    a: ["Wenn der Ladungsunterschied so groß ist, dass die Luft leitend wird.", "Sobald es anfängt zu regnen.", "Wenn zwei Wolken zusammenstoßen.", "Wenn die Wolke höher als 10 km ist."],
+    e: "Luft ist normalerweise ein Isolator. Erst bei riesigem Ladungsunterschied wird ein schmaler Luftkanal leitend." },
+  { q: "Was ist der Blitz physikalisch betrachtet?",
+    a: ["Eine Ladungsbewegung, also elektrischer Strom.", "Eine elektrische Spannung.", "Brennendes Gas in der Luft.", "Ein Lichtstrahl der Sonne."],
+    e: "Beim Blitz bewegen sich Elektronen schlagartig zwischen Wolke und Boden. Bewegte Ladungen sind elektrischer Strom." },
+  { q: "Wie entsteht der Donner?",
+    a: ["Die Luft im Blitzkanal wird extrem heiß und dehnt sich explosionsartig aus.", "Die Wolken prallen gegeneinander.", "Eiskristalle zerbrechen in der Wolke.", "Der Blitz schlägt auf den Boden auf."],
+    e: "Der Blitzkanal wird bis zu 30 000 °C heiß. Die schlagartige Ausdehnung der Luft hören wir als Donner." },
+  { q: "Zwischen Blitz und Donner vergehen 6 Sekunden. Wie weit ist das Gewitter entfernt?",
+    a: ["etwa 2 km", "etwa 6 km", "etwa 18 km", "etwa 0,5 km"],
+    e: "Der Schall legt in 3 Sekunden etwa 1 km zurück: 6 s : 3 = 2 km. Das ist gefährlich nah – sofort Schutz suchen!" },
+  { q: "★ Woher stammt die Energie des Blitzes ursprünglich?",
+    a: ["Von der Sonne: Sie treibt den Aufwind an, der die Ladungen trennt.", "Aus dem Erdboden.", "Der Blitz erzeugt seine Energie selbst.", "Aus dem Regenwasser."],
+    e: "Sonne → warme Luft → Aufwind (Bewegungsenergie). Beim Trennen der Ladungen wird Arbeit verrichtet, die Energie steckt dann als elektrische Energie in den getrennten Ladungen." },
+];
+const R2 = [
+  { q: "Im Auto mit Metallkarosserie sitzen bleiben", safe: true, e: "Die Ladungen fließen außen über die Metallhülle ab (Faradayscher Käfig)." },
+  { q: "Unter einer einzelnen großen Eiche Schutz suchen", safe: false, e: "Einzelne hohe Bäume werden bevorzugt getroffen – egal welche Baumart." },
+  { q: "Im Freibad noch schnell zu Ende schwimmen", safe: false, e: "Im Wasser ist man der höchste Punkt, und Wasser leitet. Sofort raus!" },
+  { q: "In ein Gebäude mit Blitzableiter gehen", safe: true, e: "Der Blitzableiter leitet die Ladungen über ein Kabel sicher in den Boden." },
+  { q: "Kein Haus in Sicht: in eine Mulde hocken, Füße eng zusammen", safe: true, e: "Das ist die beste Notlösung im Freien: möglichst klein und tief sein." },
+  { q: "Sich flach auf den Boden legen", safe: false, e: "Liegend ist man großflächig mit dem Boden verbunden. Besser hocken, Füße zusammen." },
+  { q: "Mit dem Fahrrad schnell über das freie Feld nach Hause fahren", safe: false, e: "Auf dem Rad ist man auf freiem Feld der höchste Punkt. Absteigen, Abstand zum Rad, in eine Mulde hocken." },
+  { q: "Im Cabrio mit Stoffverdeck sitzen", safe: false, e: "Ohne geschlossene Metallhülle gibt es keinen Faradayschen Käfig." },
+  { q: "Nach dem letzten Donner noch 30 Minuten drinnen bleiben", safe: true, e: "Auch abziehende Gewitter können noch Blitze aussenden." },
+  { q: "Als Gruppe auf dem Feld eng zusammenstehen", safe: false, e: "Besser mehrere Meter Abstand halten, damit ein Einschlag nicht alle trifft." },
+  { q: "Mit aufgespanntem Regenschirm über die Wiese laufen", safe: false, e: "Der Schirm macht dich noch höher. Schirm schließen und Schutz suchen." },
+];
+const box = $("quiz-box");
+let qi = 0, score = 0, mistakes = [], order = [];
+const total = R1.length + R2.length;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function startQuiz() {
+  qi = 0; score = 0; mistakes = [];
+  order = [...R1.map((x, i) => ({ r: 1, i })), ...shuffle(R2.map((x, i) => ({ r: 2, i })))];
+  render();
+}
+function header(roundLabel) {
+  return `<div class="q-top"><span class="round">${roundLabel}</span><span class="score">Frage ${qi + 1} von ${total} · ${score} Punkte</span></div>
+          <div class="bar" aria-hidden="true"><i style="width:${(qi / total) * 100}%"></i></div>`;
+}
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function render() {
+  if (qi >= total) return result();
+  const it = order[qi];
+  if (it.r === 1) {
+    const Q = R1[it.i];
+    const opts = shuffle(Q.a.map((t, k) => ({ t, ok: k === 0 })));
+    box.innerHTML = header("Runde 1 · Wie entsteht ein Blitz?") +
+      `<p class="q-text">${esc(Q.q)}</p><div class="opts">` +
+      opts.map((o, k) => `<button type="button" class="opt" data-ok="${o.ok}" id="opt${k}">${esc(o.t)}</button>`).join("") +
+      `</div><div class="feedback" id="fb" role="status"></div><div class="q-actions"><button type="button" class="btn-main" id="next" hidden>Weiter</button></div>`;
+    box.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(b, b.dataset.ok === "true", Q.e, Q.q, Q.a[0]));
+  } else {
+    const Q = R2[it.i];
+    box.innerHTML = header("Runde 2 · Sicher oder gefährlich?") +
+      `<p class="q-text">${esc(Q.q)}</p><div class="opts two">
+        <button type="button" class="opt" data-ok="${Q.safe}" id="opt-safe">Gute Idee</button>
+        <button type="button" class="opt" data-ok="${!Q.safe}" id="opt-bad">Gefährlich</button></div>
+       <div class="feedback" id="fb" role="status"></div><div class="q-actions"><button type="button" class="btn-main" id="next" hidden>Weiter</button></div>`;
+    box.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(b, b.dataset.ok === "true", Q.e, Q.q, Q.safe ? "Gute Idee" : "Gefährlich"));
+  }
+  const first = box.querySelector(".opt"); if (first && document.activeElement && box.contains(document.activeElement)) first.focus();
+}
+function answer(btn, ok, expl, q, correct) {
+  box.querySelectorAll(".opt").forEach(b => { b.disabled = true; if (b.dataset.ok === "true") b.classList.add("right"); });
+  if (!ok) { btn.classList.add("wrong"); mistakes.push({ q, correct, expl }); } else score++;
+  const fb = $("fb");
+  fb.className = "feedback show " + (ok ? "ok" : "no");
+  fb.innerHTML = `<strong>${ok ? "Richtig!" : "Leider falsch."}</strong> ${esc(expl)}`;
+  const n = $("next"); n.hidden = false; n.textContent = qi + 1 >= total ? "Auswertung" : "Weiter"; n.focus();
+  n.onclick = () => { qi++; render(); box.querySelector(".opt, .btn-main")?.focus(); };
+  box.querySelector(".score").textContent = `Frage ${qi + 1} von ${total} · ${score} Punkte`;
+}
+function result() {
+  const pct = score / total;
+  const rank = pct >= 0.9 ? ["Blitz-Profi", "Du kannst erklären, wie ein Blitz entsteht, und weißt, wie man sich schützt."]
+            : pct >= 0.65 ? ["Gewitter-Kenner", "Schon gut! Schau dir unten die Fragen an, die noch nicht geklappt haben."]
+            : ["Ab in den Bus!", "Sieh dir den Simulator noch einmal an und versuche es dann erneut."];
+  box.innerHTML = `<div class="result">
+    <div class="q-top"><span class="round">Auswertung</span></div>
+    <div class="big">${score} / ${total}</div>
+    <h3 style="margin-top:6px;font-size:1.6rem">${rank[0]}</h3>
+    <p class="lead">${rank[1]}</p>
+    ${mistakes.length ? `<div class="review">${mistakes.map(m => `<div><b>${esc(m.q)}</b>Richtig: ${esc(m.correct.replace(/\.$/, ""))}. ${esc(m.expl)}</div>`).join("")}</div>` : ""}
+    <div class="q-actions"><button type="button" class="btn-main" id="again">Noch einmal</button></div></div>`;
+  $("again").onclick = startQuiz;
+}
+startQuiz();
+
+/* ---------------------------------------------------------------- views */
+function route() {
+  const quiz = location.hash === "#quiz";
+  $("simulator").hidden = quiz;
+  $("quiz").hidden = !quiz;
+  S.paused = quiz ? true : S.userPaused || false;
+  $("nav-sim").toggleAttribute("aria-current", !quiz); if (!quiz) $("nav-sim").setAttribute("aria-current", "page");
+  $("nav-quiz").toggleAttribute("aria-current", quiz); if (quiz) $("nav-quiz").setAttribute("aria-current", "page");
+  $("lead").textContent = quiz
+    ? "Teste dein Wissen: Runde 1 zur Entstehung des Blitzes, Runde 2 zum richtigen Verhalten bei Gewitter."
+    : "Steuere den Aufwind in der Gewitterwolke und beobachte, wie aus Ladungstrennung ein Blitz wird.";
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+route();
+})();
+</script>
+
+
+<!-- STANDARDS.md Abschnitt 4: Seitenfuß -->
+<style>
+.stdfuss{display:block;clear:both;margin:32px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));border-top:1px solid rgba(128,128,128,.35);font:12.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:inherit;text-align:left;position:relative;z-index:1}
+.stdfuss *{box-sizing:border-box}
+.stdfuss p{margin:0 0 8px;max-width:72ch}
+.stdfuss .stdfuss-row{display:flex;flex-wrap:wrap;gap:0 24px;align-items:center}
+.stdfuss .stdfuss-row button{font:inherit;font-weight:700;color:inherit;background:none;border:0;padding:5px 0;min-height:30px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.stdfuss .stdfuss-row button::before{content:"";border:4.5px solid transparent;border-left:6px solid currentColor;border-right:0;transition:transform .15s}
+.stdfuss .stdfuss-row button[aria-expanded="true"]::before{transform:rotate(90deg)}
+.stdfuss .stdfuss-row button[aria-expanded="true"]{text-decoration:underline;text-underline-offset:3px}
+.stdfuss .stdfuss-panel{max-width:72ch;margin-top:4px}
+.stdfuss .stdfuss-panel[hidden]{display:none}
+.stdfuss ul{margin:4px 0 8px;padding-left:20px}
+.stdfuss li{margin:3px 0}
+.stdfuss a{color:inherit;text-decoration:underline}
+.stdfuss .stdfuss-hint{opacity:.75;font-size:12px}
+</style>
+<footer class="stdfuss" lang="de">
+<p>Eigenes Unterrichtsmaterial. Kein offizielles Material der Bremer Bildungsbehörde. Dein Fortschritt wird nur in diesem Browser gespeichert.</p>
+<div class="stdfuss-row">
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p1">Datenschutz</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p2">Impressum</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p3">Schriftlizenzen</button>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p1" hidden>
+<ul>
+<li><b>Keine Datensammlung:</b> Diese Seite erhebt keine personenbezogenen Daten. Keine Anmeldung, keine Cookies, kein Tracking, keine Formulare, die Daten verschicken.</li>
+<li><b>Speicherung nur im Browser:</b> Fortschritt und Eingaben werden höchstens im Speicher deines Browsers auf diesem Gerät abgelegt (localStorage) und nicht übertragen. Du kannst sie in den Einstellungen deines Browsers löschen.</li>
+<li><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub, Inc., USA). GitHub verarbeitet beim Aufruf technisch notwendige Daten wie deine IP-Adresse. <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a></li>
+<li><b>Nichts von fremden Servern:</b> Schriften, Skripte und Bilder werden von dieser Seite selbst geladen.</li>
+<li><b>Deine Rechte:</b> Nach der DSGVO hast du das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung sowie auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde.</li>
+<li><b>Verantwortlich:</b> siehe Impressum.</li>
+<li><b>Datenschutzbeauftragter:</b> datenschutz nord GmbH, Konsul-Smidt-Straße 88, 28217 Bremen, office@datenschutz-nord.de</li>
+</ul>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p2" hidden>
+<p><b>Oberschule an der Hermannsburg</b><br>Hermannsburg 32f<br>28259 Bremen<br>E-Mail: 505@schule.bremen.de</p>
+<p>Vertreten durch den Schulleiter Achim Kaschub</p>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p3" hidden>
+<p>Alle Schriften werden von dieser Seite selbst geladen, ohne Verbindung zu Google oder anderen Schriftdiensten. Sie stehen unter der SIL Open Font License 1.1 und wurden nicht verändert.</p>
+<ul><li><b>Atkinson Hyperlegible</b> – Copyright 2020 Braille Institute of America, Inc.</li><li><b>Barlow Condensed</b> – Copyright 2017 The Barlow Project Authors</li></ul>
+<a href="fonts-blitz/LIZENZEN.txt" target="_blank" rel="noopener">Vollständiger Lizenztext</a> (öffnet in neuem Tab)
+</div>
+<noscript><style>.stdfuss .stdfuss-panel[hidden]{display:block}.stdfuss .stdfuss-row{display:none}</style></noscript>
+<script>(function(){var b=document.querySelectorAll('.stdfuss-row button');b.forEach(function(x){x.addEventListener('click',function(){var on=x.getAttribute('aria-expanded')!=='true';b.forEach(function(y){y.setAttribute('aria-expanded','false');document.getElementById(y.getAttribute('aria-controls')).hidden=true;});if(on){x.setAttribute('aria-expanded','true');document.getElementById(x.getAttribute('aria-controls')).hidden=false;}});});})();</script>
+</footer>
+</body></html>
+<!-- Lernseite: Zurück-Leiste und Schloss (Simulation selbst unverändert) -->
+<script>window.SIM_ID = 'blitz-labor';</script>
+<script src="../data/codes.js"></script>
+<script src="../assets/lock.js"></script>

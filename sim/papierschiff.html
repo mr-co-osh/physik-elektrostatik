@@ -1,0 +1,585 @@
+<!doctype html><html><head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Experiment 2: Papierschiff &amp; Polarisation</title>
+<link rel="stylesheet" href="fonts-experimente/fonts.css">
+<style>
+/* Layout: eine Bühne (Canvas) mit Werkzeugleiste darüber, Messwerte und Erklärung darunter */
+:root {
+  --bg: #edf1f4;
+  --panel: #ffffff;
+  --ink: #18222e;
+  --muted: #566474;
+  --line: #d3dbe2;
+  --accent: #1d6b74;
+  --accent-ink: #ffffff;
+  --plus: #d0412f;
+  --minus: #2a63c9;
+  --sign: #ffffff;
+  --stage: #f7f9fa;
+  --stage-grid: #e4eaee;
+  --water: #7fb6d6;
+  --water-deep: #3f7fa8;
+  --basin: #9aa6b1;
+  --paper: #fbfbf7;
+  --paper-shade: #dfe2dc;
+  --paper-line: #a9b0a6;
+  --rod: #4a5560;
+  --rod-hi: #8996a3;
+  --acrylic: #bcdbe4;
+  --acrylic-hi: #f2fbfd;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12181f; --panel: #1a222b; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3742;
+    --accent: #4fb3bd; --accent-ink: #0d1a1d; --plus: #ff6a55; --minus: #5c93ff; --sign: #ffffff;
+    --stage: #161d25; --stage-grid: #1f2831; --water: #2f6a8c; --water-deep: #1c4560; --basin: #5d6974;
+    --paper: #e9eae4; --paper-shade: #c2c6bd; --paper-line: #8d948a; --rod: #3a444e; --rod-hi: #6f7d8a;
+    --acrylic: #7fa7b4; --acrylic-hi: #c9e6ee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12181f; --panel: #1a222b; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3742;
+  --accent: #4fb3bd; --accent-ink: #0d1a1d; --plus: #ff6a55; --minus: #5c93ff; --sign: #ffffff;
+  --stage: #161d25; --stage-grid: #1f2831; --water: #2f6a8c; --water-deep: #1c4560; --basin: #5d6974;
+  --paper: #e9eae4; --paper-shade: #c2c6bd; --paper-line: #8d948a; --rod: #3a444e; --rod-hi: #6f7d8a;
+  --acrylic: #7fa7b4; --acrylic-hi: #c9e6ee;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 40px; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 0; color: var(--muted); max-width: 65ch; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+.seg button { font: inherit; font-weight: 700; font-size: 0.95rem; border: 0; background: transparent; color: var(--muted); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.btn { font: inherit; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 9px 16px; border-radius: 999px; cursor: pointer; }
+.btn:hover, .seg button:hover:not([aria-pressed="true"]) { color: var(--ink); background: var(--stage-grid); }
+button:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 620; border-radius: 8px; touch-action: none; cursor: grab; }
+canvas.dragging { cursor: grabbing; }
+
+.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 2fr); gap: 12px; }
+.meter { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; gap: 4px; min-width: 0; align-content: start; }
+.meter .k { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; overflow-wrap: anywhere; hyphens: auto; }
+.meter { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 440px) { .meter .k { letter-spacing: 0; font-size: 0.7rem; } .meter { padding-inline: 12px; } }
+.meter .v { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.meter .d { font-size: 0.88rem; color: var(--muted); }
+.bar { height: 10px; border-radius: 999px; background: var(--stage-grid); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--plus), var(--minus)); border-radius: 999px; }
+.status { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; min-width: 0; }
+.status p { margin: 0; }
+
+.notes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; padding-top: 4px; }
+.notes h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; margin: 0 0 8px; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.legend li { display: flex; gap: 10px; align-items: center; }
+.chip { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: var(--sign); font-weight: 700; font-size: 16px; line-height: 1; }
+.chip.p { background: var(--plus); }
+.chip.m { background: var(--minus); }
+.notes ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 65ch; }
+
+@media (max-width: 720px) {
+  .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status { grid-column: 1 / -1; }
+  .notes { grid-template-columns: 1fr; }
+  .meter .v { font-size: 1.6rem; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Experiment 2: Papierschiff &amp; Polarisation</h1>
+    <p class="sub">Greife den geladenen Stab und nähere ihn dem Papierschiff, ohne es zu berühren. Im Papier verschieben sich die Ladungen, und das Schiff folgt dem Stab über das Wasser.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Stab auswählen">
+      <button type="button" id="rod-pvc" aria-pressed="true">PVC-Stab (negativ)</button>
+      <button type="button" id="rod-acr" aria-pressed="false">Acrylglasstab (positiv)</button>
+      <button type="button" id="rod-neu" aria-pressed="false">Ungeladener Stab</button>
+    </div>
+    <button type="button" class="btn" id="reset">Zurücksetzen</button>
+  </div>
+
+  <div class="stage">
+    <canvas id="c" width="1000" height="620" tabindex="0" aria-label="Simulation: PVC-Stab über dem Wasserbecken bewegen. Mit den Pfeiltasten lässt sich der Stab ebenfalls bewegen."></canvas>
+  </div>
+
+  <div class="readout" aria-live="polite">
+    <div class="meter">
+      <span class="k">Gesamtladung Schiff</span>
+      <span class="v">0</span>
+      <span class="d">bleibt immer neutral</span>
+    </div>
+    <div class="meter">
+      <span class="k">Ladungsverschiebung</span>
+      <span class="v" id="vp">0 %</span>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+    </div>
+    <div class="status"><p id="status">Der Stab ist weit weg. Positive und negative Ladungen im Papier liegen gleichmäßig verteilt beieinander.</p></div>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>Legende</h2>
+      <ul class="legend">
+        <li><span class="chip p">+</span><span>positive Ladung (Atomkern) – bleibt an ihrem Platz</span></li>
+        <li><span class="chip m">−</span><span>negative Ladung (Elektron) – kann sich ein Stück verschieben</span></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Was passiert?</h2>
+      <ol>
+        <li>Der PVC-Stab ist negativ geladen, der Acrylglasstab positiv.</li>
+        <li>Papier ist ein Nichtleiter. Seine Elektronen können nicht frei wandern, aber in jedem Teilchen verschieben sie sich ein kleines Stück. Das heißt <strong>Polarisation</strong>.</li>
+        <li>Beim PVC-Stab werden die Elektronen abgestoßen: Die zugewandte Seite des Schiffs wird positiv, die abgewandte negativ. Beim Acrylglasstab werden sie angezogen: Die zugewandte Seite wird negativ, die abgewandte positiv.</li>
+        <li>In beiden Fällen liegt die entgegengesetzte Ladung näher am Stab. Die Anziehung ist deshalb stärker als die Abstoßung, und das Schiff wird zum Stab gezogen. Insgesamt bleibt es neutral.</li>
+        <li>Entfernt man den Stab, gehen die Ladungen an ihren Platz zurück. Es fließt keine Ladung über, denn Stab und Schiff berühren sich nicht.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const W = 1000, H = 620;
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const WATER_Y = 420;
+  const basin = { x: 70, y: 330, w: 860, h: 250 };
+  // Papierschiff, Koordinaten relativ zu (Schiff.x, Wasseroberfläche)
+  const HULL = [[-150, -40], [-80, -40], [0, -165], [80, -40], [150, -40], [110, 22], [-110, 22]];
+  const SITES = [
+    [0, -122], [-25, -84], [25, -84], [-50, -48], [0, -48], [50, -48],
+    [-96, -12], [-48, -12], [0, -12], [48, -12], [96, -12]
+  ];
+  const BOAT_START = 760;                 // Schiff startet weit rechts
+  const TIP_START = { x: 280, y: 300 };   // Stab startet weit links
+  let ROD_DIR = { x: -Math.cos(0.5), y: -Math.sin(0.5) };  // Richtung von der Spitze zum Griff
+  // Die Spitze zeigt immer zum Gegenstand; der Griff bleibt dabei schräg oben
+  function dirFor(tx, ty, ox, oy) {
+    let x = tx - ox, y = ty - oy;
+    const l = Math.hypot(x, y) || 1;
+    x /= l; y /= l;
+    if (y > -0.3) { y = -0.3; x = (x < 0 ? -1 : 1) * Math.sqrt(1 - 0.09); }
+    return { x, y };
+  }
+  const ROD_LEN = 300, ROD_W = 38;
+  let E0 = 1;                    // Bezugsfeldstärke, wird in init() berechnet
+  const MAX_SHIFT = 24;
+
+  const boat = { x: BOAT_START, vx: 0 };
+  const tip = { x: TIP_START.x, y: TIP_START.y };
+  let sites = [], rodExtra = [];
+  let rodSign = -1, strength = 0, dirU = { x: 1, y: 0 };
+  let drag = null, everDragged = false, t0 = 0;
+
+  function init() {
+    boat.x = BOAT_START; boat.vx = 0;
+    tip.x = TIP_START.x; tip.y = TIP_START.y;
+    sites = SITES.map(([x, y]) => ({ x, y, dx: 0, dy: 0, ph: Math.random() * 6.28 }));
+    // Stab komplett mit Ladungen füllen: zwei versetzte Reihen über die ganze Länge
+    rodExtra = [];
+    for (let a = 16; a <= ROD_LEN - 14; a += 26) rodExtra.push({ a, side: -1 });
+    for (let a = 29; a <= ROD_LEN - 14; a += 26) rodExtra.push({ a, side: 1 });
+    // Bezug: Feld 170 px links neben der Stabspitze entspricht 100 %
+    const sx = tip.x, sy = tip.y;
+    tip.x = 500; tip.y = 250;
+    calib = true; const rd0 = ROD_DIR; ROD_DIR = { x: 1, y: 0 }; const Er = field(330, 250); ROD_DIR = rd0; calib = false;
+    E0 = Math.hypot(Er.x, Er.y);
+    tip.x = sx; tip.y = sy;
+  }
+
+  // Punkt auf dem Stab: a = Abstand von der Spitze entlang der Achse, side = Seite quer zur Achse
+  function rodPoint(a, side, off) {
+    const nx = -ROD_DIR.y, ny = ROD_DIR.x;
+    return { x: tip.x + ROD_DIR.x * a + nx * side * (off || 7), y: tip.y + ROD_DIR.y * a + ny * side * (off || 7) };
+  }
+
+  // ---- Geometrie ----
+  function boatPoly(bx) { return HULL.map(([x, y]) => [bx + x, WATER_Y + y]); }
+  function inPoly(P, x, y) {
+    let c = false;
+    for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+      const [xi, yi] = P[i], [xj, yj] = P[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function distSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay;
+    let t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  }
+  // Abstand zwischen Stab (dicke Strecke) und Schiff
+  function rodBoatClear(tx, ty, bx) {
+    const P = boatPoly(bx);
+    const rd = dirFor(tx, ty, bx, WATER_Y - 50);
+    const ex = tx + rd.x * ROD_LEN, ey = ty + rd.y * ROD_LEN;
+    let m = 1e9;
+    for (const [px, py] of P) m = Math.min(m, distSeg(px, py, tx, ty, ex, ey));
+    for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+      m = Math.min(m, distSeg(tx, ty, P[j][0], P[j][1], P[i][0], P[i][1]));
+    }
+    if (inPoly(P, tx, ty)) m = 0;
+    return m - ROD_W / 2;
+  }
+  const MIN_GAP = 18;
+
+  function moveTip(nx, ny) {
+    nx = Math.max(24, Math.min(W - 24, nx));
+    ny = Math.max(24, Math.min(WATER_Y - 26, ny));
+    if (rodBoatClear(nx, ny, boat.x) >= MIN_GAP) { tip.x = nx; tip.y = ny; return; }
+    // entlang einer Achse weiterschieben, wenn die andere blockiert ist
+    if (rodBoatClear(nx, tip.y, boat.x) >= MIN_GAP) { tip.x = nx; return; }
+    if (rodBoatClear(tip.x, ny, boat.x) >= MIN_GAP) { tip.y = ny; }
+  }
+
+  // ---- Feld ----
+  let calib = false;
+  // Wirkung erst ab einer gewissen Nähe: weit weg fast keine Ladungsverschiebung
+  function eff(s, cap) { return Math.min(cap || 1.5, s <= 0.3 ? 0 : (s - 0.3) / 0.7); }
+  function field(x, y) {
+    if (!rodSign && !calib) return { x: 0, y: 0 };
+    let ex = 0, ey = 0;
+    for (const r of rodExtra) {
+      const p = rodPoint(r.a, r.side);
+      const dx = p.x - x, dy = p.y - y;              // zeigt zur negativen Ladung hin
+      const d2 = Math.max(dx * dx + dy * dy, 400);
+      const d = Math.sqrt(d2);
+      ex += dx / (d2 * d); ey += dy / (d2 * d); // Betrag ~ 1/r²
+    }
+    return { x: ex, y: ey };
+  }
+
+  function physics(dt) {
+    ROD_DIR = dirFor(tip.x, tip.y, boat.x, WATER_Y - 50);
+    const f = dt / 16.67;
+    const cx = boat.x, cy = WATER_Y - 45;
+    const Ec = field(cx, cy);
+    const mag = Math.hypot(Ec.x, Ec.y);
+    strength = eff(mag / E0);
+    if (mag > 0) dirU = { x: Ec.x / mag, y: Ec.y / mag };
+
+    // Verschiebung der Elektronen: vom negativen Stab weg, zum positiven Stab hin
+    for (const s of sites) {
+      const E = field(boat.x + s.x, WATER_Y + s.y);
+      const m = Math.hypot(E.x, E.y);
+      const amt = Math.min(MAX_SHIFT, MAX_SHIFT * 0.9 * eff(m / E0));
+      const tx = m ? rodSign * E.x / m * amt : 0, ty = m ? rodSign * E.y / m * amt : 0;
+      const k = reduceMotion ? 1 : Math.min(1, dt / 90);
+      s.dx += (tx - s.dx) * k; s.dy += (ty - s.dy) * k;
+    }
+
+    // Anziehung (horizontal), Wasserwiderstand
+    const s2 = Math.min(1.5, strength) ** 2;
+    boat.vx += 0.16 * Math.min(1.5, strength) * dirU.x * f;
+    boat.vx = Math.max(-3, Math.min(3, boat.vx));
+    boat.vx *= Math.pow(0.96, f);
+    let nx = boat.x + boat.vx * f;
+    nx = Math.max(basin.x + 160, Math.min(basin.x + basin.w - 160, nx));
+    if (rodBoatClear(tip.x, tip.y, nx) < MIN_GAP) { boat.vx = 0; }
+    else { if (nx !== boat.x + boat.vx * f) boat.vx = 0; boat.x = nx; }
+  }
+
+  // ---- Eingabe ----
+  function toLocal(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  }
+  function onRod(x, y) {
+    const ex = tip.x + ROD_DIR.x * ROD_LEN, ey = tip.y + ROD_DIR.y * ROD_LEN;
+    return distSeg(x, y, tip.x, tip.y, ex, ey) < ROD_W / 2 + 14;
+  }
+  canvas.addEventListener('pointerdown', e => {
+    const p = toLocal(e);
+    if (onRod(p.x, p.y)) {
+      drag = { dx: tip.x - p.x, dy: tip.y - p.y };
+      everDragged = true;
+      canvas.setPointerCapture(e.pointerId);
+      canvas.classList.add('dragging');
+      e.preventDefault();
+    }
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const p = toLocal(e);
+    moveTip(p.x + drag.dx, p.y + drag.dy);
+  });
+  function endDrag() { drag = null; canvas.classList.remove('dragging'); }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('keydown', e => {
+    const step = 12;
+    const m = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (m) { e.preventDefault(); everDragged = true; moveTip(tip.x + m[0], tip.y + m[1]); }
+  });
+
+  const bPvc = document.getElementById('rod-pvc'), bAcr = document.getElementById('rod-acr'), bNeu = document.getElementById('rod-neu');
+  function setRod(sign) {
+    rodSign = sign;
+    bPvc.setAttribute('aria-pressed', sign < 0);
+    bAcr.setAttribute('aria-pressed', sign > 0);
+    bNeu.setAttribute('aria-pressed', sign === 0);
+    lastMsg = '';
+  }
+  bPvc.addEventListener('click', () => setRod(-1));
+  bAcr.addEventListener('click', () => setRod(1));
+  bNeu.addEventListener('click', () => setRod(0));
+  document.getElementById('reset').addEventListener('click', init);
+
+  // ---- Anzeige ----
+  const vp = document.getElementById('vp'), bar = document.getElementById('bar'), st = document.getElementById('status');
+  let lastP = -1, lastMsg = '';
+  function updateReadout() {
+    const p = Math.round(Math.min(1, strength) * 100);
+    if (p !== lastP) { lastP = p; vp.textContent = p + ' %'; bar.style.width = p + '%'; }
+    const neg = rodSign < 0;
+    let msg;
+    if (!rodSign) msg = 'Der Stab ist ungeladen. Er übt keine Kraft aus, die Ladungen im Papier bleiben an ihrem Platz und das Schiff bewegt sich nicht.';
+    else if (p < 6) msg = 'Der Stab ist weit weg. Positive und negative Ladungen im Papier liegen gleichmäßig verteilt beieinander.';
+    else if (Math.abs(boat.vx) > 0.15) msg = 'Die dem Stab zugewandte Seite ist ' + (neg ? 'positiv' : 'negativ') + ', die abgewandte ' + (neg ? 'negativ' : 'positiv') + '. Die Anziehung überwiegt: Das Schiff fährt zum Stab.';
+    else if (p >= 60) msg = 'Starke Ladungsverschiebung. Steht der Stab genau über dem Schiff, zieht er es nach oben statt zur Seite, und das Schiff bleibt stehen.';
+    else msg = 'Die Elektronen im Papier werden vom ' + (neg ? 'negativen Stab abgestoßen' : 'positiven Stab angezogen') + ' und verschieben sich ein Stück. Je näher der Stab, desto stärker die Verschiebung.';
+    if (msg !== lastMsg) { lastMsg = msg; st.textContent = msg; }
+  }
+
+  // ---- Zeichnen ----
+  let tok = {}, tokFrame = 0;
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    ['--plus', '--minus', '--sign', '--stage', '--stage-grid', '--water', '--water-deep', '--basin',
+     '--paper', '--paper-shade', '--paper-line', '--rod', '--rod-hi', '--acrylic', '--acrylic-hi', '--ink', '--muted', '--accent']
+      .forEach(k => tok[k] = cs.getPropertyValue(k).trim());
+  }
+  let chargeR = 10;
+  function fitCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = canvas.getBoundingClientRect().width || W;
+    const scale = cssW / W;
+    canvas.width = Math.round(W * scale * dpr);
+    canvas.height = Math.round(H * scale * dpr);
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    chargeR = Math.max(10, 5.5 / scale);
+  }
+
+  function charge(x, y, sign, alpha) {
+    if (alpha <= 0.01) return;
+    const r = chargeR;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = sign > 0 ? tok['--plus'] : tok['--minus'];
+    ctx.fill();
+    ctx.strokeStyle = tok['--sign']; ctx.lineWidth = Math.max(2, r * 0.22); ctx.lineCap = 'round';
+    const s = r * 0.5;
+    ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x + s, y);
+    if (sign > 0) { ctx.moveTo(x, y - s); ctx.lineTo(x, y + s); }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function label(text, cx, cy, align) {
+    ctx.font = '700 22px "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = tok['--ink'];
+    ctx.fillText(text, cx, cy);
+  }
+
+  function drawStage() {
+    ctx.fillStyle = tok['--stage']; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = tok['--stage-grid']; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 40; x < W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 40; y < H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+
+  function waveY(x, t) {
+    if (reduceMotion) return WATER_Y;
+    const v = Math.min(3, Math.abs(boat.vx));
+    return WATER_Y + Math.sin(x * 0.03 + t * 0.002) * 1.5 + Math.sin((x - boat.x) * 0.06 - t * 0.008) * v * 1.4 * Math.exp(-Math.abs(x - boat.x) / 260);
+  }
+
+  function drawWater(t, front) {
+    const { x, y, w, h } = basin;
+    const bottom = y + h;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, bottom - 8);
+    for (let xx = x + 8; xx <= x + w - 8; xx += 10) ctx.lineTo(xx, waveY(xx, t));
+    ctx.lineTo(x + w - 8, bottom - 8);
+    ctx.closePath();
+    const g = ctx.createLinearGradient(0, WATER_Y, 0, bottom);
+    g.addColorStop(0, tok['--water']); g.addColorStop(1, tok['--water-deep']);
+    ctx.fillStyle = g;
+    ctx.globalAlpha = front ? 0.45 : 1;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBasin() {
+    const { x, y, w, h } = basin;
+    ctx.strokeStyle = tok['--basin']; ctx.lineWidth = 8; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y); ctx.stroke();
+    label('Wasserbecken', x + 16, y + h + 22, 'left');
+  }
+
+  function drawBoat(t) {
+    const P = boatPoly(boat.x);
+    const bob = reduceMotion ? 0 : Math.sin(t * 0.0025) * 1.5;
+    ctx.save(); ctx.translate(0, bob);
+    // Rumpf
+    ctx.beginPath();
+    ctx.moveTo(P[0][0], P[0][1]); ctx.lineTo(P[4][0], P[4][1]); ctx.lineTo(P[5][0], P[5][1]); ctx.lineTo(P[6][0], P[6][1]); ctx.closePath();
+    ctx.fillStyle = tok['--paper']; ctx.fill();
+    // Mittelteil (Segel)
+    ctx.beginPath(); ctx.moveTo(P[1][0], P[1][1]); ctx.lineTo(P[2][0], P[2][1]); ctx.lineTo(P[3][0], P[3][1]); ctx.closePath();
+    ctx.fillStyle = tok['--paper-shade']; ctx.fill();
+    // Faltlinien
+    ctx.strokeStyle = tok['--paper-line']; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]);
+    for (let i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
+    ctx.closePath(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]); ctx.lineTo(P[4][0], P[4][1]);
+    ctx.moveTo(P[2][0], P[2][1]); ctx.lineTo(boat.x, WATER_Y - 40); ctx.stroke();
+
+    // Ladungspaare: + bleibt am Platz, − ist verschoben; eine Linie zeigt die Zusammengehörigkeit
+    sites.forEach(s => {
+      const x = boat.x + s.x, y = WATER_Y + s.y;
+      const j = reduceMotion ? 0 : Math.sin(t * 0.003 + s.ph) * 1.2;
+      const ex = x + s.dx + j, ey = y + s.dy - j;
+      if (Math.hypot(s.dx, s.dy) > 4) {
+        ctx.strokeStyle = tok['--muted']; ctx.lineWidth = 2; ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      charge(x, y, +1, 1);
+      charge(ex, ey, -1, 1);
+    });
+    ctx.restore();
+  }
+
+  function drawRod() {
+    const ex = tip.x + ROD_DIR.x * ROD_LEN, ey = tip.y + ROD_DIR.y * ROD_LEN;
+    const acr = rodSign > 0, neu = rodSign === 0;
+    ctx.lineCap = 'round';
+    if (acr) {
+      ctx.strokeStyle = tok['--paper-line']; ctx.lineWidth = ROD_W + 3;
+      ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(ex, ey); ctx.stroke();
+    }
+    ctx.strokeStyle = acr ? tok['--acrylic'] : tok['--rod']; ctx.lineWidth = ROD_W;
+    ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(ex, ey); ctx.stroke();
+    const nx = -ROD_DIR.y, ny = ROD_DIR.x;
+    ctx.strokeStyle = acr ? tok['--acrylic-hi'] : tok['--rod-hi']; ctx.lineWidth = 5; ctx.globalAlpha = acr ? 0.9 : 0.6;
+    ctx.beginPath(); ctx.moveTo(tip.x - nx * 8, tip.y - ny * 8); ctx.lineTo(ex - nx * 8, ey - ny * 8); ctx.stroke();
+    ctx.globalAlpha = 1;
+    for (const r of rodExtra) {
+      const p = rodPoint(r.a, r.side, 8);
+      if (rodSign) charge(p.x, p.y, rodSign, 1);
+    }
+  }
+
+  function drawHint(t) {
+    if (everDragged) return;
+    const a = reduceMotion ? 1 : 0.65 + 0.35 * Math.sin(t * 0.004);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = tok['--accent'];
+    ctx.font = '700 19px "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('Stab greifen und dem Schiff nähern', 420, 70);
+    ctx.fillText('(nicht berühren)', 420, 96);
+    ctx.globalAlpha = 1;
+  }
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(50, t - last); last = t;
+    if (tokFrame++ % 30 === 0) readTokens();
+    physics(dt);
+    drawStage();
+    drawBasin();
+    drawWater(t, false);
+    drawBoat(t);
+    drawWater(t, true);
+    drawRod();
+    drawHint(t);
+    updateReadout();
+    requestAnimationFrame(frame);
+  }
+
+  readTokens();
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+  if ('ResizeObserver' in window) new ResizeObserver(fitCanvas).observe(canvas);
+  init();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+
+<!-- STANDARDS.md Abschnitt 4: Seitenfuß -->
+<style>
+.stdfuss{display:block;clear:both;margin:32px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));border-top:1px solid rgba(128,128,128,.35);font:12.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:inherit;text-align:left;position:relative;z-index:1}
+.stdfuss *{box-sizing:border-box}
+.stdfuss p{margin:0 0 8px;max-width:72ch}
+.stdfuss .stdfuss-row{display:flex;flex-wrap:wrap;gap:0 24px;align-items:center}
+.stdfuss .stdfuss-row button{font:inherit;font-weight:700;color:inherit;background:none;border:0;padding:5px 0;min-height:30px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.stdfuss .stdfuss-row button::before{content:"";border:4.5px solid transparent;border-left:6px solid currentColor;border-right:0;transition:transform .15s}
+.stdfuss .stdfuss-row button[aria-expanded="true"]::before{transform:rotate(90deg)}
+.stdfuss .stdfuss-row button[aria-expanded="true"]{text-decoration:underline;text-underline-offset:3px}
+.stdfuss .stdfuss-panel{max-width:72ch;margin-top:4px}
+.stdfuss .stdfuss-panel[hidden]{display:none}
+.stdfuss ul{margin:4px 0 8px;padding-left:20px}
+.stdfuss li{margin:3px 0}
+.stdfuss a{color:inherit;text-decoration:underline}
+.stdfuss .stdfuss-hint{opacity:.75;font-size:12px}
+</style>
+<footer class="stdfuss" lang="de">
+<p>Eigenes Unterrichtsmaterial. Kein offizielles Material der Bremer Bildungsbehörde. Dein Fortschritt wird nur in diesem Browser gespeichert.</p>
+<div class="stdfuss-row">
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p1">Datenschutz</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p2">Impressum</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p3">Schriftlizenzen</button>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p1" hidden>
+<ul>
+<li><b>Keine Datensammlung:</b> Diese Seite erhebt keine personenbezogenen Daten. Keine Anmeldung, keine Cookies, kein Tracking, keine Formulare, die Daten verschicken.</li>
+<li><b>Speicherung nur im Browser:</b> Fortschritt und Eingaben werden höchstens im Speicher deines Browsers auf diesem Gerät abgelegt (localStorage) und nicht übertragen. Du kannst sie in den Einstellungen deines Browsers löschen.</li>
+<li><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub, Inc., USA). GitHub verarbeitet beim Aufruf technisch notwendige Daten wie deine IP-Adresse. <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a></li>
+<li><b>Nichts von fremden Servern:</b> Schriften, Skripte und Bilder werden von dieser Seite selbst geladen.</li>
+<li><b>Deine Rechte:</b> Nach der DSGVO hast du das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung sowie auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde.</li>
+<li><b>Verantwortlich:</b> siehe Impressum.</li>
+<li><b>Datenschutzbeauftragter:</b> datenschutz nord GmbH, Konsul-Smidt-Straße 88, 28217 Bremen, office@datenschutz-nord.de</li>
+</ul>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p2" hidden>
+<p><b>Oberschule an der Hermannsburg</b><br>Hermannsburg 32f<br>28259 Bremen<br>E-Mail: 505@schule.bremen.de</p>
+<p>Vertreten durch den Schulleiter Achim Kaschub</p>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p3" hidden>
+<p>Alle Schriften werden von dieser Seite selbst geladen, ohne Verbindung zu Google oder anderen Schriftdiensten. Sie stehen unter der SIL Open Font License 1.1 und wurden nicht verändert.</p>
+<ul><li><b>Atkinson Hyperlegible</b> – Copyright 2020 Braille Institute of America, Inc.</li><li><b>Bricolage Grotesque</b> – Copyright 2022 The Bricolage Grotesque Project Authors</li></ul>
+<a href="fonts-experimente/LIZENZEN.txt" target="_blank" rel="noopener">Vollständiger Lizenztext</a> (öffnet in neuem Tab)
+</div>
+<noscript><style>.stdfuss .stdfuss-panel[hidden]{display:block}.stdfuss .stdfuss-row{display:none}</style></noscript>
+<script>(function(){var b=document.querySelectorAll('.stdfuss-row button');b.forEach(function(x){x.addEventListener('click',function(){var on=x.getAttribute('aria-expanded')!=='true';b.forEach(function(y){y.setAttribute('aria-expanded','false');document.getElementById(y.getAttribute('aria-controls')).hidden=true;});if(on){x.setAttribute('aria-expanded','true');document.getElementById(x.getAttribute('aria-controls')).hidden=false;}});});})();</script>
+</footer>
+</body></html>
+<!-- Lernseite: Zurück-Leiste und Schloss (Simulation selbst unverändert) -->
+<script>window.SIM_ID = 'papierschiff';</script>
+<script src="../data/codes.js"></script>
+<script src="../assets/lock.js"></script>

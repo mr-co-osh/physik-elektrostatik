@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Training Test · Elektrostatik</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tabs a { font: 700 16px var(--f-text); text-decoration: none; padding: 10px 16px; border-radius: 10px; min-height: 44px; display: inline-flex; align-items: center; border: 2px solid var(--line); color: var(--text); background: var(--surface); }
+  .tabs a[aria-current="page"] { border-color: var(--blue); background: var(--blue); color: #fff; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs a[aria-current="page"] { color: #0B1824; } }
+  :root[data-theme="dark"] .tabs a[aria-current="page"] { color: #0B1824; }
+  .facts { display: flex; gap: 8px 20px; flex-wrap: wrap; font-size: 16px; color: var(--muted); }
+  .facts b { color: var(--ink); }
+  .task { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .task-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 2px solid var(--blue); }
+  .task.star .task-head { border-color: var(--green); }
+  .task-head h2 { font-size: 21px; }
+  .task.star .task-head h2 { color: var(--green-d); }
+  .task-head span { font-size: 15px; color: var(--muted); font-weight: 700; }
+  .task-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .task-body p { max-width: 70ch; }
+  .sub { display: grid; grid-template-columns: 36px 1fr; gap: 4px; }
+  .sub b { color: var(--ink); }
+  .sub.star b { color: var(--green-d); }
+  figure { margin: 0; background: #fff; border: 1.5px solid var(--green); border-radius: 10px; padding: 8px; max-width: 640px; }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 14px; color: #33475B; padding: 6px 4px 0; }
+  .checks { display: flex; flex-direction: column; gap: 6px; }
+  .checks label { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 17px; }
+  .checks input { width: 22px; height: 22px; margin-top: 1px; accent-color: var(--blue); flex: none; }
+  .checks label.right { border-color: var(--green-d); background: var(--mint); }
+  .checks label.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .answer { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .answer input { flex: 1 1 160px; min-width: 0; max-width: 240px; font: 700 20px var(--f-text); padding: 10px 12px; min-height: 50px; border: 2px solid var(--blue); border-radius: 10px; background: var(--surface); color: var(--ink); }
+  .answer .unit { font-size: 19px; font-weight: 700; color: var(--ink); }
+  .fb { font-weight: 700; min-height: 1.4em; }
+  .fb.ok { color: var(--green-d); } .fb.bad { color: var(--bad); } .fb.warn { color: var(--warn); }
+  textarea { font: 17px/1.45 var(--f-text); width: 100%; max-width: 70ch; min-height: 96px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); resize: vertical; }
+  textarea:focus { border-color: var(--blue); outline: none; }
+  details { border: 1.5px solid var(--green); border-radius: 10px; background: var(--mint); }
+  summary { cursor: pointer; padding: 10px 14px; font-weight: 700; color: var(--green-d); min-height: 44px; display: flex; align-items: center; }
+  details > div { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; color: var(--text); }
+  details ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .lang { background: var(--sky); border-radius: 10px; padding: 10px 14px; font-size: 16px; }
+  .lang b { color: var(--ink); }
+  .new { font-size: 13px; font-weight: 700; color: var(--blue); }
+</style>
+</head>
+<body>
+<header class="band band-mini"><div class="wrap"><a class="back" href="../">← Elektrostatik</a><h1>Test-Training</h1></div></header>
+<main class="wrap">
+  <section class="page-intro">
+    <nav class="tabs" aria-label="Prüfung wählen"><a href="kurztest.html" aria-current="page">Test (DS 7)</a><a href="index.html">Klassenarbeit (DS 8)</a></nav>
+    <h2 style="font-size:26px">Fit für den Test Elektrostatik</h2>
+    <p>So ähnlich sehen die Aufgaben aus. Bearbeite zuerst selbst – im Heft oder hier – und klappe dann die Lösung auf. Die Aufgaben werden nicht bewertet.</p>
+    <div class="facts"><span><b>30 Minuten</b> Bearbeitungszeit</span><span>Aufgaben mit <b style="color:var(--green-d)">★</b> sind für das erweiterte Niveau</span></div>
+    <p><a href="../checkliste.html#kurztest">Checkliste: Bin ich fit für den Test? →</a></p>
+  </section>
+<article class="task"><div class="task-head"><h2>Aufgabe 1: Die Alukugel am Faden</h2><span>6 P</span></div><div class="task-body"><p>Eine leichte Kugel aus Alufolie hängt an einem Faden. Ein <b>negativ</b> geladener Luftballon wird langsam genähert, ohne die Kugel zu berühren.</p><div class="sub"><b>a)</b><span>Was passiert mit der Kugel? Kreuze an. (1 P)</span></div><div class="checks" data-checks><label><input type="radio" name="g1" data-ok="1"> Die Kugel schwingt zum Ballon hin.</label><label><input type="radio" name="g1" data-ok="0"> Die Kugel schwingt vom Ballon weg.</label><label><input type="radio" name="g1" data-ok="0"> Die Kugel bewegt sich nicht.</label></div><div class="answer"><button class="btn chk-btn" type="button">Prüfen</button><span class="chk-fb fb" aria-live="polite"></span></div><div class="sub"><b>b)</b><span>Auf welcher Seite der Kugel sammeln sich die freien Elektronen? Kreuze an. (1 P)</span></div><div class="checks" data-checks><label><input type="radio" name="g2" data-ok="0"> auf der Seite zum Ballon</label><label><input type="radio" name="g2" data-ok="1"> auf der Seite vom Ballon weg</label><label><input type="radio" name="g2" data-ok="0"> gleichmäßig verteilt</label></div><div class="answer"><button class="btn chk-btn" type="button">Prüfen</button><span class="chk-fb fb" aria-live="polite"></span></div><div class="sub"><b>c)</b><span>Erkläre die Beobachtung mit dem Modell. Verwende die Begriffe <b>freie Elektronen</b>, <b>abstoßen</b>, <b>Elektronenmangel</b> und <b>Influenz</b>. (4 P)</span></div><label class="sr" for="t3">Deine Antwort</label><textarea id="t3" placeholder="Schreibe hier oder ins Heft."></textarea><p class="lang"><b>Satzanfänge:</b> „Der Ballon hat … Die freien Elektronen in der Kugel … Auf der Seite zum Ballon … Plus und Minus …“</p><details><summary>Lösung anzeigen</summary><div><ul><li><b>a)</b> Die Kugel schwingt zum Ballon hin.</li><li><b>b)</b> Auf der Seite vom Ballon weg.</li><li><b>c)</b> Der Ballon hat einen Elektronenüberschuss. Die freien Elektronen in der Alukugel werden abgestoßen und wandern auf die ferne Seite (1 P). Auf der Seite zum Ballon entsteht ein Elektronenmangel (1 P). Diese positive Seite ist näher am negativen Ballon; die Anziehung ist stärker als die Abstoßung der fernen Seite (1 P). Die Ladungstrennung in einem Leiter heißt Influenz (1 P).</li></ul></div></details></div></article>
+<article class="task"><div class="task-head"><h2>Aufgabe 2: Der Kamm und die Papierschnipsel</h2><span>5 P</span></div><div class="task-body"><p>Ein Kamm wird an den Haaren gerieben und über kleine Papierschnipsel gehalten. Die Schnipsel springen zum Kamm.</p><div class="sub"><b>a)</b><span>Richtig oder falsch? Kreuze alle richtigen Aussagen an. (4 P)</span></div><div class="checks" data-checks><label><input type="checkbox" name="g4" data-ok="1"> Papier ist ein Isolator.</label><label><input type="checkbox" name="g4" data-ok="0"> Im Papier wandern Elektronen durch den ganzen Schnipsel.</label><label><input type="checkbox" name="g4" data-ok="1"> In den Atomen des Papiers verschieben sich die Elektronen nur ein kleines Stück.</label><label><input type="checkbox" name="g4" data-ok="1"> Diesen Vorgang nennt man Polarisation.</label><label><input type="checkbox" name="g4" data-ok="0"> Die Schnipsel sind danach negativ geladen, obwohl sie den Kamm nicht berührt haben.</label></div><div class="answer"><button class="btn chk-btn" type="button">Prüfen</button><span class="chk-fb fb" aria-live="polite"></span></div><div class="sub"><b>b)</b><span>Nenne einen Unterschied zwischen Influenz und Polarisation. (1 P)</span></div><label class="sr" for="t5">Deine Antwort</label><textarea id="t5" placeholder="Schreibe hier oder ins Heft."></textarea><details><summary>Lösung anzeigen</summary><div><ul><li><b>a)</b> Richtig: Papier ist ein Isolator · Elektronen verschieben sich nur ein kleines Stück · Polarisation. Falsch: Elektronen wandern nicht durch den ganzen Schnipsel; die Schnipsel bleiben insgesamt neutral.</li><li><b>b)</b> Zum Beispiel: Bei Influenz (Leiter) wandern freie Elektronen durch den ganzen Körper, bei Polarisation (Isolator) verschieben sie sich nur innerhalb der Atome.</li></ul></div></details></div></article>
+<article class="task"><div class="task-head"><h2>Aufgabe 3: Das Gewitter</h2><span>7 P · ★ 2 P</span></div><div class="task-body"><div class="sub"><b>a)</b><span>Bringe die Sätze in die richtige Reihenfolge und schreibe die Buchstaben ins Heft. (3 P)</span></div><p>A Die Ladungen gleichen sich als Blitz aus. · B In der Wolke stoßen Eiskristalle und Graupel zusammen. · C Unten in der Wolke sammelt sich negative Ladung, der Boden wird positiv. · D Zwischen Wolke und Boden entsteht eine große Spannung.</p><label class="sr" for="t6">Deine Antwort</label><textarea id="t6" placeholder="Reihenfolge, z. B. A – B – C – D"></textarea><div class="sub"><b>b)</b><span>Nenne zwei Regeln für das Verhalten bei Gewitter und begründe eine davon. (3 P)</span></div><label class="sr" for="t7">Deine Antwort</label><textarea id="t7" placeholder="Schreibe hier oder ins Heft."></textarea><div class="sub"><b>c)</b><span>Zwischen Blitz und Donner zählst du 21 Sekunden. Wie weit ist das Gewitter entfernt? (1 P)</span></div><form class="answer" data-wert="7" data-einheit="km"><label for="n8">Dein Ergebnis:</label><input id="n8" inputmode="decimal" autocomplete="off"><span class="unit">km</span><button class="btn" type="submit">Prüfen</button><span class="fb" aria-live="polite"></span></form><div class="sub star"><b>★ d)</b><span>Rechne genauer mit 340 m/s: Wie weit ist ein Gewitter entfernt, wenn zwischen Blitz und Donner 5 Sekunden vergehen? (2 P)</span></div><form class="answer" data-wert="1700" data-einheit="m"><label for="n9">Dein Ergebnis:</label><input id="n9" inputmode="decimal" autocomplete="off"><span class="unit">m</span><button class="btn" type="submit">Prüfen</button><span class="fb" aria-live="polite"></span></form><details><summary>Lösung anzeigen</summary><div><ul><li><b>a)</b> B – C – D – A</li><li><b>b)</b> Zum Beispiel: in ein Haus oder Auto gehen (die Metallhülle leitet die Ladung außen herum in den Boden); nicht unter einzelnen Bäumen stehen (sie werden oft getroffen); nicht schwimmen.</li><li><b>c)</b> 21 s : 3 s pro km = 7 km</li><li><b>★ d)</b> s = v · t = 340 m/s · 5 s = 1700 m ≈ 1,7 km</li></ul></div></details></div></article>
+  <section class="page-intro" style="gap:8px"><h2 style="font-size:20px">Weiter üben</h2><p><a href="../uebung.html#influenz-polarisation">Influenz oder Polarisation? →</a> · <a href="../uebung.html#blitz">Wie entsteht ein Blitz? →</a> · <a href="../formel-trainer.html#gewitter">Formel-Trainer: Entfernung →</a></p></section>
+</main>
+
+<script src="../data/site.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  var A = window.App;
+  document.querySelectorAll('[data-checks]').forEach(function (box) {
+    var row = box.nextElementSibling, btn = row.querySelector('.chk-btn'), fb = row.querySelector('.chk-fb');
+    btn.onclick = function () {
+      var all = box.querySelectorAll('input'), ok = 0;
+      all.forEach(function (i) {
+        var lab = i.parentNode, should = i.dataset.ok === '1';
+        lab.classList.remove('right', 'wrong');
+        if (i.checked === should) { if (should) lab.classList.add('right'); ok++; } else lab.classList.add('wrong');
+      });
+      fb.className = 'chk-fb fb ' + (ok === all.length ? 'ok' : 'bad');
+      fb.textContent = ok === all.length ? 'Richtig!' : 'Noch nicht ganz. Rot markiert ist, was du ändern solltest.';
+    };
+  });
+  document.querySelectorAll('form.answer').forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var x = A.parse(f.querySelector('input').value), w = +f.dataset.wert, fb = f.querySelector('.fb');
+      if (!isFinite(x)) { fb.className = 'fb warn'; fb.textContent = 'Gib eine Zahl ein.'; return; }
+      var close = function (a) { return Math.abs(a - w) <= w * 0.015; };
+      if (close(x)) { fb.className = 'fb ok'; fb.textContent = 'Richtig! Vergleiche deinen Rechenweg mit der Lösung.'; }
+      else if (close(x * 1000) || close(x / 1000) || close(x * 100) || close(x / 100)) { fb.className = 'fb warn'; fb.textContent = 'Fast! Prüfe Einheit und Kommastelle.'; }
+      else { fb.className = 'fb bad'; fb.textContent = 'Noch nicht. Prüfe deine Rechnung oder klappe die Lösung auf.'; }
+    });
+  });
+})();
+</script>
+
+<!-- STANDARDS.md Abschnitt 4: Seitenfuß -->
+<style>
+.stdfuss{display:block;clear:both;margin:32px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));border-top:1px solid rgba(128,128,128,.35);font:12.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:inherit;text-align:left;position:relative;z-index:1}
+.stdfuss *{box-sizing:border-box}
+.stdfuss p{margin:0 0 8px;max-width:72ch}
+.stdfuss .stdfuss-row{display:flex;flex-wrap:wrap;gap:0 24px;align-items:center}
+.stdfuss .stdfuss-row button{font:inherit;font-weight:700;color:inherit;background:none;border:0;padding:5px 0;min-height:30px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.stdfuss .stdfuss-row button::before{content:"";border:4.5px solid transparent;border-left:6px solid currentColor;border-right:0;transition:transform .15s}
+.stdfuss .stdfuss-row button[aria-expanded="true"]::before{transform:rotate(90deg)}
+.stdfuss .stdfuss-row button[aria-expanded="true"]{text-decoration:underline;text-underline-offset:3px}
+.stdfuss .stdfuss-panel{max-width:72ch;margin-top:4px}
+.stdfuss .stdfuss-panel[hidden]{display:none}
+.stdfuss ul{margin:4px 0 8px;padding-left:20px}
+.stdfuss li{margin:3px 0}
+.stdfuss a{color:inherit;text-decoration:underline}
+.stdfuss .stdfuss-hint{opacity:.75;font-size:12px}
+</style>
+<footer class="stdfuss" lang="de">
+<p>Eigenes Unterrichtsmaterial. Kein offizielles Material der Bremer Bildungsbehörde. Dein Fortschritt wird nur in diesem Browser gespeichert.</p>
+<div class="stdfuss-row">
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p1">Datenschutz</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p2">Impressum</button>
+<button type="button" aria-expanded="false" aria-controls="stdfuss-p3">Schriftlizenzen</button>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p1" hidden>
+<ul>
+<li><b>Keine Datensammlung:</b> Diese Seite erhebt keine personenbezogenen Daten. Keine Anmeldung, keine Cookies, kein Tracking, keine Formulare, die Daten verschicken.</li>
+<li><b>Speicherung nur im Browser:</b> Fortschritt und Eingaben werden höchstens im Speicher deines Browsers auf diesem Gerät abgelegt (localStorage) und nicht übertragen. Du kannst sie in den Einstellungen deines Browsers löschen.</li>
+<li><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub, Inc., USA). GitHub verarbeitet beim Aufruf technisch notwendige Daten wie deine IP-Adresse. <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a></li>
+<li><b>Nichts von fremden Servern:</b> Schriften, Skripte und Bilder werden von dieser Seite selbst geladen.</li>
+<li><b>Deine Rechte:</b> Nach der DSGVO hast du das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung sowie auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde.</li>
+<li><b>Verantwortlich:</b> siehe Impressum.</li>
+</ul> <a href="../datenschutz.html">Ausführliche Fassung</a>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p2" hidden>
+<p>[Name]<br>[Anschrift]<br>[E-Mail-Adresse]</p>
+<p class="stdfuss-hint">Die Angaben werden nachgetragen.</p>
+</div>
+<div class="stdfuss-panel" id="stdfuss-p3" hidden>
+<p>Alle Schriften werden von dieser Seite selbst geladen, ohne Verbindung zu Google oder anderen Schriftdiensten. Sie stehen unter der SIL Open Font License 1.1 und wurden nicht verändert.</p>
+<ul><li><b>Carlito</b> – Copyright 2013 The Carlito Project Authors, with Reserved Font Name &quot;Carlito&quot;</li><li><b>Big Shoulders Display</b> – Copyright 2019 The Big Shoulders Project Authors</li><li><b>Big Shoulders Stencil Display</b> – Copyright 2019 The Big Shoulders Project Authors</li><li><b>IBM Plex Sans</b> – Copyright © 2017 IBM Corp. with Reserved Font Name &quot;Plex&quot;</li><li><b>IBM Plex Mono</b> – Copyright © 2017 IBM Corp. with Reserved Font Name &quot;Plex&quot;</li><li><b>Barlow Condensed</b> – Copyright 2017 The Barlow Project Authors</li><li><b>JetBrains Mono</b> – Copyright 2020 The JetBrains Mono Project Authors</li><li><b>Source Sans 3</b> – Copyright 2010-2024 Adobe, with Reserved Font Name &#x27;Source&#x27;. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.</li></ul>
+<a href="../assets/fonts/LIZENZEN.txt" target="_blank" rel="noopener">Vollständiger Lizenztext</a> (öffnet in neuem Tab)
+</div>
+<noscript><style>.stdfuss .stdfuss-panel[hidden]{display:block}.stdfuss .stdfuss-row{display:none}</style></noscript>
+<script>(function(){var b=document.querySelectorAll('.stdfuss-row button');b.forEach(function(x){x.addEventListener('click',function(){var on=x.getAttribute('aria-expanded')!=='true';b.forEach(function(y){y.setAttribute('aria-expanded','false');document.getElementById(y.getAttribute('aria-controls')).hidden=true;});if(on){x.setAttribute('aria-expanded','true');document.getElementById(x.getAttribute('aria-controls')).hidden=false;}});});})();</script>
+</footer>
+</body>
+</html>
