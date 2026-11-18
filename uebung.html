@@ -40,6 +40,19 @@
   .zcard.bad { border-color: var(--bad); background: var(--bad-soft); }
   .zcard .rk { display: block; font-size: 13px; color: var(--bad); font-weight: 700; }
   .zcard .grip { touch-action: none; color: var(--muted); font-size: 20px; padding: 6px 2px; margin: -6px 0; cursor: grab; }
+  .zboxes.zeile { grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); }
+  /* Bild beschriften (Teil 1, z. B. Atom): Kästen liegen am Bild, Begriffe aus dem Stapel hineinziehen */
+  .teil { font-size: 20px; margin: 4px 0 6px; color: var(--ink); }
+  .bild { position: relative; max-width: 820px; margin: 12px 0 16px; }
+  .bild svg { display: block; width: 100%; height: auto; }
+  .bbox { position: absolute; left: 64%; width: 35%; height: clamp(40px, 9vw, 58px); transform: translateY(-50%); display: flex; align-items: center; justify-content: center; padding: 3px; border: 2px dashed var(--muted); border-radius: 10px; background: var(--surface); cursor: pointer; }
+  .bbox.hot, .bild.picking .bbox { border-color: var(--blue); }
+  .bbox.hot { border-style: solid; box-shadow: 0 0 0 3px rgba(31, 111, 178, .25); }
+  .bbox .zcard { width: 100%; justify-content: center; padding: 5px 6px; }
+  .bbox .zcard .grip { display: none; }
+  .bbox .zcard.bad { flex-direction: column; gap: 0; }
+  @media (max-width: 520px) { .bbox .zcard { font-size: 13px; padding: 3px 4px; } .bbox .zcard .rk { font-size: 11px; } }
+  #bild:empty { display: none; }
   .zboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 10px; }
   .zbox { border: 2px solid var(--line); border-radius: 12px; background: var(--surface); min-height: 110px; display: flex; flex-direction: column; }
   .zbox-h { font-weight: 700; padding: 8px 12px; border-bottom: 1px solid var(--line); color: var(--ink); display: flex; justify-content: space-between; gap: 8px; }
@@ -106,6 +119,7 @@
       </div>
     </div>
   </section>
+  <section class="u-body" id="bild" aria-live="polite"></section>
   <section class="u-body" id="body" aria-live="polite"></section>
   <section aria-labelledby="h-more"><div class="sec-head"><h2 id="h-more">Weitere Übungen in diesem Bereich</h2></div><div class="more" id="more"></div></section>
 </main>
@@ -189,11 +203,84 @@
     $('meta').innerHTML = '<span>Phase ' + b.phase + ' · ' + b.ds + '</span>' +
       (cur.n !== 'stern' ? '<span class="tag">Basis</span>' : '') + (cur.n !== 'basis' ? '<span class="tag star">★</span>' : '') + (cur.ein ? '<span class="tag ein">Einstieg</span>' : '');
     $('niveau').querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.v === niveau)); });
+    $('bild').innerHTML = ''; if (cur.bild) bildteil();
     ({ zuordnen: zuordnen, sortieren: sortieren, quiz: quiz, luecke: luecke, schaetzen: schaetzen })[cur.typ]();
     $('more').innerHTML = U.filter(function (u) { return u.r === cur.r && u.id !== cur.id; }).map(function (u) {
       return '<a class="chip" href="#' + u.id + '">' + A.fmt(u.titel) + (status[u.id] === 100 ? ' ✓' : '') + '</a>'; }).join('') +
       '<a class="chip" href="./">Alle Bereiche</a>';
     window.scrollTo(0, 0);
+  }
+
+  /* ---------- Bild beschriften (Teil 1 vor einer Zuordnen-Übung; Daten: cur.bild = { svg, felder: [{ t, y }] }, y in % der Bildhöhe) ---------- */
+  function bildteil() {
+    var B = cur.bild, place = {}, pick = null, marked = false;
+    var order = A.shuffle(B.felder.map(function (_, n) { return n; }));
+    function card(n) {
+      var cls = 'zcard' + (pick === n ? ' sel' : ''), mark = '';
+      if (marked && place[n] != null) { var good = place[n] === n; cls += good ? ' ok' : ' bad'; if (!good) mark = '<span class="rk">richtig: ' + A.esc(B.felder[place[n]].t) + '</span>'; }
+      return '<div class="' + cls + '" data-n="' + n + '" tabindex="0" role="button" aria-pressed="' + (pick === n) + '"><span class="grip" aria-hidden="true">⠿</span><span>' + A.esc(B.felder[n].t) + mark + '</span></div>';
+    }
+    function inBox(k) { for (var n in place) if (place[n] === k) return +n; return null; }
+    function render() {
+      var free = order.filter(function (n) { return place[n] == null; });
+      $('bild').innerHTML = '<h3 class="teil">Teil 1: Beschrifte das Bild</h3>' +
+        '<p class="zhint">Ziehe die Begriffe in die Kästen am Bild – oder tippe einen Begriff an und dann den Kasten.</p>' +
+        '<div class="zpool" id="bpool" aria-label="Begriffe">' + (free.length ? free.map(card).join('') : '<span class="zempty">Alle Begriffe sind eingesetzt. Jetzt prüfen!</span>') + '</div>' +
+        '<div class="bild' + (pick != null ? ' picking' : '') + '">' + B.svg + B.felder.map(function (f, k) {
+          var n = inBox(k);
+          return '<div class="bbox" data-k="' + k + '" style="top:' + f.y + '%" tabindex="0" role="button" aria-label="Kasten ' + (k + 1) + '">' + (n != null ? card(n) : '') + '</div>';
+        }).join('') + '</div>' +
+        '<div class="actions"><button class="btn" id="bcheck" type="button">Prüfen</button><button class="linkbtn" id="breset" type="button">Neu mischen</button><span class="score" id="bsc" aria-live="polite"></span></div>' +
+        '<h3 class="teil" style="margin-top:26px">Teil 2: Was passt zu welchem Teil?</h3>';
+      wire();
+    }
+    function put(n, k) {
+      if (k != null) { var o = inBox(k); if (o != null && o !== n) delete place[o]; place[n] = k; } else delete place[n];
+      pick = null; marked = false; render();
+    }
+    function wire() {
+      var R = $('bild');
+      R.querySelectorAll('.zcard').forEach(function (c) {
+        var n = +c.dataset.n;
+        c.addEventListener('click', function (ev) { ev.stopPropagation(); if (c.dataset.dragged) return; pick = pick === n ? null : n; render(); var f = R.querySelector('.zcard[data-n="' + n + '"]'); if (f) f.focus(); });
+        c.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); c.click(); } });
+        c.addEventListener('pointerdown', function (ev) { drag(ev, n, c); });
+      });
+      R.querySelectorAll('.bbox').forEach(function (b) {
+        b.addEventListener('click', function () { if (pick != null) put(pick, +b.dataset.k); });
+        b.addEventListener('keydown', function (ev) { if ((ev.key === 'Enter' || ev.key === ' ') && pick != null) { ev.preventDefault(); put(pick, +b.dataset.k); } });
+      });
+      $('bpool').addEventListener('click', function () { if (pick != null && place[pick] != null) put(pick, null); });
+      $('bcheck').onclick = function () {
+        marked = true; render();
+        var ok = B.felder.filter(function (_, n) { return place[n] === n; }).length, open = B.felder.length - Object.keys(place).length;
+        var el = $('bsc'); el.className = 'score ' + (ok === B.felder.length ? 'ok' : 'bad');
+        el.textContent = ok === B.felder.length ? 'Alles richtig!' : ok + ' von ' + B.felder.length + ' richtig.' + (open ? ' Noch ' + open + ' im Stapel.' : ' Schau dir die rot markierten noch einmal an.');
+      };
+      $('breset').onclick = function () { place = {}; pick = null; marked = false; order = A.shuffle(order); render(); };
+    }
+    function drag(ev, n, c) {
+      if (ev.button) return;
+      if (ev.pointerType !== 'mouse' && !ev.target.closest('.grip') && !c.closest('.bbox')) return;
+      ev.preventDefault();
+      var r = c.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top, x0 = ev.clientX, y0 = ev.clientY, g = null, hot = null;
+      function target(x, y) { var el = document.elementFromPoint(x, y); return el && (el.closest('.bbox') || el.closest('#bpool')); }
+      function mv(e) {
+        if (!g) { if (Math.abs(e.clientX - x0) + Math.abs(e.clientY - y0) < 6) return; g = c.cloneNode(true); g.classList.add('zghost'); g.style.width = r.width + 'px'; document.body.appendChild(g); c.style.opacity = '.35'; }
+        g.style.left = (e.clientX - dx) + 'px'; g.style.top = (e.clientY - dy) + 'px';
+        var t = target(e.clientX, e.clientY); if (t !== hot) { if (hot) hot.classList.remove('hot'); hot = t; if (hot) hot.classList.add('hot'); }
+      }
+      function up(e) {
+        window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+        if (!g) return;
+        g.remove(); c.style.opacity = ''; if (hot) hot.classList.remove('hot');
+        c.dataset.dragged = '1'; setTimeout(function () { delete c.dataset.dragged; }, 0);
+        var t = e.type === 'pointerup' ? target(e.clientX, e.clientY) : null;
+        if (t && t.classList.contains('bbox')) put(n, +t.dataset.k); else if (t && t.id === 'bpool') put(n, null);
+      }
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    }
+    render();
   }
 
   /* ---------- Zuordnen ---------- */
@@ -213,13 +300,21 @@
       var free = order.filter(function (n) { return place[n] == null; });
       $('body').innerHTML = '<p class="zhint">Ziehe jede Karte in das passende Feld – oder tippe eine Karte an und dann das Feld. Zum Zurücklegen die Karte in den Stapel ziehen.</p>' +
         '<div class="zpool" id="zpool" aria-label="Kartenstapel">' + (free.length ? free.map(card).join('') : '<span class="zempty">Alle Karten sind zugeordnet. Jetzt prüfen!</span>') + '</div>' +
-        '<div class="zboxes' + (pick != null ? ' picking' : '') + '">' + cats.map(function (c) {
+        '<div class="zboxes' + (cur.zeile ? ' zeile' : '') + (pick != null ? ' picking' : '') + '">' + cats.map(function (c) {
           var inn = order.filter(function (n) { return place[n] === c.i; });
           return '<div class="zbox" data-k="' + c.i + '" tabindex="0" role="button" aria-label="Feld ' + A.esc(c.c) + '"><div class="zbox-h">' + A.esc(c.c) + (inn.length ? '<small>' + inn.length + '</small>' : '') + '</div><div class="zbox-in">' + inn.map(card).join('') + '</div></div>';
         }).join('') + '</div>' +
         '<div class="actions"><button class="btn" id="check" type="button">Prüfen</button><button class="linkbtn" id="reset-z" type="button">Neu mischen</button><span class="score" id="sc" aria-live="polite"></span></div>';
+      if (cur.zeile) cols();
       wire();
     }
+    /* Felder gleichmäßig auf die Zeilen verteilen (wie Energie; z. B. 5 Felder: iPad quer 5 in einer Reihe) */
+    function cols() {
+      var bx = $('body').querySelector('.zboxes'), w = bx.clientWidth, n = cats.length;
+      var max = Math.max(1, Math.floor((w + 10) / (170 + 10))), rows = Math.ceil(n / max);
+      bx.style.setProperty('--cols', Math.ceil(n / rows));
+    }
+    if (cur.zeile) window.onresize = function () { if ($('body').querySelector('.zboxes.zeile')) cols(); };
     function put(n, k) { if (k == null) delete place[n]; else place[n] = k; pick = null; marked = false; render(); }
     function wire() {
       $('body').querySelectorAll('.zcard').forEach(function (c) {

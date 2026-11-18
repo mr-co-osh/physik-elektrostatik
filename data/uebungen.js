@@ -6,7 +6,11 @@ window.UEBUNGEN = [
 
   // ======================= Atom & Leiter =======================
   { id: 'atom', r: 'atom', typ: 'zuordnen', n: 'basis', ein: true, titel: 'Atom beschriften',
-    intro: 'Zu welchem Teil des Atoms passt die Beschreibung? Ordne jede Karte zu.',
+    zeile: true,   /* Felder gleichmäßig in einer Reihe (Layout Energie) */
+    /* Teil 1: Bild wie Arbeitsblatt 01C, Kästen von oben nach unten */
+    bild: { svg: '<svg viewBox="0 0 1000 620" aria-hidden="true"><circle cx="300" cy="310" r="270" fill="#EDF0F3" stroke="#8A96A3" stroke-width="7" stroke-dasharray="22 14"/><circle cx="300" cy="310" r="100" fill="#fff" stroke="#8A96A3" stroke-width="4"/><g stroke="#8A96A3" stroke-width="3"><circle cx="320" cy="262" r="25" fill="#C9D0D7"/><circle cx="262" cy="345" r="25" fill="#C9D0D7"/><circle cx="294" cy="306" r="25" fill="#C9D0D7"/></g><g fill="#D2412F"><circle cx="252" cy="282" r="25"/><circle cx="345" cy="326" r="25"/><circle cx="305" cy="365" r="25"/></g><g stroke="#fff" stroke-width="6" stroke-linecap="round"><path d="M240 282h24M252 270v24M333 326h24M345 314v24M293 365h24M305 353v24"/></g><g fill="#2B66CC"><circle cx="330" cy="72" r="22"/><circle cx="100" cy="230" r="22"/><circle cx="430" cy="525" r="22"/><circle cx="150" cy="475" r="22"/></g><g stroke="#fff" stroke-width="6" stroke-linecap="round"><path d="M319 72h22M89 230h22M419 525h22M139 475h22"/></g><g stroke="#333" stroke-width="3.5" fill="none"><path d="M330 72L610 62h30"/><path d="M470 180L610 186h30"/><path d="M320 262L610 310h30"/><path d="M345 326L610 434h30"/><path d="M371 381L610 558h30"/></g><g fill="#333"><circle cx="330" cy="72" r="6"/><circle cx="470" cy="180" r="6"/><circle cx="320" cy="262" r="6"/><circle cx="345" cy="326" r="6"/><circle cx="371" cy="381" r="6"/></g></svg>',
+      felder: [{ t: 'Elektron', y: 10.0 }, { t: 'Atomhülle', y: 30.0 }, { t: 'Neutron', y: 50.0 }, { t: 'Proton', y: 70.0 }, { t: 'Atomkern', y: 90.0 }] },
+    intro: 'Beschrifte zuerst das Atom. Ordne dann die Beschreibungen zu.',
     kategorien: ['Atomkern', 'Atomhülle', 'Proton', 'Neutron', 'Elektron'],
     elemente: [
       { t: 'winziger Teil in der Mitte des Atoms', k: 0, ein: true },
